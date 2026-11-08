@@ -2507,4 +2507,280 @@ textarea:focus-visible {
     }
 }
 
+
+
+/* =========================================================
+   OPERATION BLACKOUT — INVESTIGATOR UPGRADE
+   ========================================================= */
+
+/* SECURITY OPERATIONS CENTRE VISIBILITY FIX */
+
+.hero-visual {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.radar-container {
+    width: min(100%, 360px);
+    flex-shrink: 0;
+    margin: 24px auto;
+}
+
+.visual-topline,
+.visual-bottomline {
+    width: 100%;
+    min-width: 0;
+}
+
+/* INVESTIGATOR PROFILE */
+
+.investigator-stats {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: 12px;
+}
+
+.sidebar-section-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.score-card,
+.rank-card {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(152, 87, 249, 0.07);
+}
+
+.score-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+}
+
+#investigationPoints {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 34px;
+    font-weight: 900;
+    color: #52D8FF;
+    font-variant-numeric: tabular-nums;
+}
+
+.score-total {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+#analystRank {
+    display: block;
+    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #D84CFF;
+}
+
+.achievement-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--muted);
+}
+
+.achievement-summary strong {
+    color: #52D8FF;
+}
+
+.achievement-display {
+    display: grid;
+    gap: 8px;
+}
+
+.achievement-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.achievement-item.locked {
+    opacity: 0.45;
+}
+
+.achievement-item.unlocked {
+    border-color: rgba(82, 216, 255, 0.35);
+    background: rgba(82, 216, 255, 0.06);
+}
+
+.achievement-icon {
+    font-size: 18px;
+    color: #52D8FF;
+    text-align: center;
+}
+
+.achievement-name {
+    font-weight: 800;
+}
+
+.achievement-status {
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--muted);
+}
+
+/* HINT BUTTON */
+
+.hint-button {
+    margin-top: 20px;
+    width: 100%;
+    text-align: left;
+}
+
+#mission1Hint,
+#mission2Hint,
+#mission3Hint,
+#mission4Hint,
+#mission5Hint {
+    animation: hintReveal 0.35s ease both;
+}
+
+@keyframes hintReveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* MISSION COMPLETION */
+
+.mission-complete-animation {
+    animation: missionComplete 0.55s ease both;
+}
+
+@keyframes missionComplete {
+    0% {
+        opacity: 0.65;
+        transform: translateY(8px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* SCORE REPORT */
+
+.report-score {
+    text-align: center;
+    padding: 30px 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(152, 87, 249, 0.08);
+}
+
+.report-score h1 {
+    margin: 12px 0;
+    font-size: clamp(36px, 7vw, 64px);
+    color: #52D8FF;
+    font-variant-numeric: tabular-nums;
+}
+
+.report-score h3 {
+    margin-bottom: 12px;
+}
+
+/* HOTSPOT INTERACTIONS */
+
+.hotspot {
+    cursor: pointer;
+    border: 1px dashed rgba(216, 76, 255, 0.7);
+    border-radius: 5px;
+    padding: 2px 5px;
+    color: #D84CFF;
+    background: rgba(216, 76, 255, 0.08);
+    font: inherit;
+    font-weight: 800;
+}
+
+.hotspot.found {
+    color: #52D8FF;
+    border-color: #52D8FF;
+    background: rgba(82, 216, 255, 0.12);
+}
+
+/* MOBILE */
+
+@media (max-width: 780px) {
+    .hero-visual {
+        padding: 18px;
+    }
+
+    .radar-container {
+        width: min(100%, 330px);
+        margin: 22px auto;
+    }
+
+    .investigator-stats {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 420px) {
+    .visual-topline,
+    .visual-bottomline {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .radar-container {
+        width: 100%;
+    }
+
+    .achievement-item {
+        grid-template-columns: 24px 1fr;
+    }
+
+    .achievement-status {
+        grid-column: 2;
+    }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+    .mission-complete-animation,
+    #mission1Hint,
+    #mission2Hint,
+    #mission3Hint,
+    #mission4Hint,
+    #mission5Hint {
+        animation: none;
+    }
+}
+
+
 }
