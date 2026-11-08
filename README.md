@@ -73,7 +73,7 @@ Participants must distinguish between confirmed evidence, reasonable conclusions
 
 ## 🌐 Play the Investigation
 
-**[Launch Digital Detective — Operation Blackout](https://rawanmismail.github.io/digital-detective/)**
+**[Launch Digital Detective — Operation Blackout]([https://rawanmismail.github.io/digital-detective/](https://digitaldetective-mission.netlify.app))**
 
 ## ⚠️ Disclaimer
 
