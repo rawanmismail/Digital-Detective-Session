@@ -2053,6 +2053,124 @@ function answerMissionFive(question, answer) {
 }
 
 
+function renderVerdictReview() {
+
+    const answers = state.answers.finalVerdict || {};
+
+    const correct = {
+        classification: "phishing",
+        compromise: "suspected",
+        response: "contain"
+    };
+
+    const questions = [
+        {
+            id: "classification",
+            title: "01 · Incident classification",
+            options: {
+                phishing: "Credential-harvesting phishing",
+                malware: "Confirmed ransomware infection",
+                normal: "Normal IT maintenance"
+            },
+            explanation:
+                "The email impersonated IT support and attempted to collect employee credentials through a lookalike domain."
+        },
+        {
+            id: "compromise",
+            title: "02 · Account compromise",
+            options: {
+                suspected: "Yes — suspected account compromise is supported by the evidence.",
+                unproven: "No — there is no evidence of unusual access.",
+                certain: "Yes — the attacker's identity and full activity are confirmed."
+            },
+            explanation:
+                "Credentials were submitted, followed by an unfamiliar successful login and unusual finance-folder access. However, the attacker's identity and full activity remain unknown."
+        },
+        {
+            id: "response",
+            title: "03 · Immediate response",
+            options: {
+                contain: "Contain the incident: secure the account and revoke active sessions.",
+                ignore: "Ignore the activity unless more employees report it.",
+                delete: "Delete the logs to remove suspicious traces."
+            },
+            explanation:
+                "Containment comes first. Secure the account, revoke active sessions, preserve evidence and begin investigating the affected systems."
+        }
+    ];
+
+    return `
+        <div class="panel mt-20">
+
+            <div class="panel-heading">
+                <h3>Investigation Results</h3>
+                <span class="status-badge badge-success">MISSION SOLVED</span>
+            </div>
+
+            <p class="muted mt-10">
+                You completed the investigation. Review the evidence-based
+                answers below to see how your assessment compares.
+            </p>
+
+            ${questions.map(question => {
+
+                const selected = answers[question.id];
+                const isCorrect = selected === correct[question.id];
+
+                return `
+                    <div class="info-card mt-15">
+
+                        <h4>${question.title}</h4>
+
+                        <p class="mt-10">
+                            <strong>Your answer:</strong>
+                            <span class="${isCorrect ? "text-cyan" : "muted"}">
+                                ${question.options[selected] || "No answer recorded"}
+                            </span>
+                        </p>
+
+                        <p class="mt-10">
+                            <strong>Correct answer:</strong>
+                            <span class="text-cyan">
+                                ${question.options[correct[question.id]]}
+                            </span>
+                        </p>
+
+                        <p class="mt-10">
+                            <strong>Why?</strong>
+                            ${question.explanation}
+                        </p>
+
+                        <div class="mt-10">
+                            ${isCorrect
+                                ? '<span class="status-badge badge-success">CORRECT</span>'
+                                : '<span class="status-badge badge-warning">REVIEW THIS ANSWER</span>'
+                            }
+                        </div>
+
+                    </div>
+                `;
+
+            }).join("")}
+
+            <div class="divider"></div>
+
+            <h3>Case Outcome</h3>
+
+            <p class="mt-10">
+                The evidence supports credential-harvesting phishing
+                followed by suspected account compromise.
+            </p>
+
+            <p class="muted mt-10">
+                The full extent of the incident and whether data was
+                exfiltrated remain unconfirmed.
+            </p>
+
+        </div>
+    `;
+}
+
 function submitFinalVerdict() {
 
     const required = [
