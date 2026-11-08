@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D0A2C">
+
+    <title>Digital Detective | Operation Blackout</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- BACKGROUND EFFECTS -->
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <!-- TOP NAVIGATION -->
+    <header class="topbar">
+
+        <a href="#" class="brand" id="brandHome">
+            <div class="brand-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="brand-text">
+                <strong>DIGITAL DETECTIVE</strong>
+                <small>OPERATION BLACKOUT</small>
+            </div>
+        </a>
+
+        <div class="topbar-right">
+
+            <div class="classification">
+                <span class="status-dot"></span>
+                INTERNAL INVESTIGATION
+            </div>
+
+            <button class="reset-button" id="resetProgress">
+                <span>↻</span>
+                Reset case
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- LANDING PAGE -->
+    <main id="homeView">
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div class="eyebrow">
+                    <span class="eyebrow-line"></span>
+                    CASE FILE 001
+                    <span class="eyebrow-divider">/</span>
+                    AURELIA GLOBAL
+                </div>
+
+                <h1>
+                    DIGITAL
+                    <span>DETECTIVE</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Operation Blackout: Investigating a Cybersecurity Incident
+                </p>
+
+                <p class="hero-description">
+                    One suspicious email. An unfamiliar login.
+                    Confidential files under investigation.
+
+                    <strong>
+                        Can you reconstruct the incident and uncover what happened?
+                    </strong>
+                </p>
+
+                <div class="hero-meta">
+
+                    <div class="meta-item">
+                        <small>CASE NUMBER</small>
+                        <strong>001</strong>
+                    </div>
+
+                    <div class="meta-item">
+                        <small>CLASSIFICATION</small>
+                        <strong>INTERNAL</strong>
+                    </div>
+
+                    <div class="meta-item">
+                        <small>STATUS</small>
+                        <strong class="active-status">ACTIVE</strong>
+                    </div>
+
+                </div>
+
+                <button class="primary-button" id="startCase">
+                    ENTER INVESTIGATION
+                    <span>→</span>
+                </button>
+
+                <p class="hero-footnote">
+                    SIMULATED SECURITY INVESTIGATION · NO REAL SYSTEMS ACCESSED
+                </p>
+
+            </div>
+
+
+            <!-- HERO VISUAL -->
+            <div class="hero-visual">
+
+                <div class="visual-topline">
+                    <span>SECURITY OPERATIONS CENTRE</span>
+                    <span class="live-indicator">● SYSTEM ONLINE</span>
+                </div>
+
+                <div class="radar-container">
+
+                    <div class="radar-ring ring-one"></div>
+                    <div class="radar-ring ring-two"></div>
+                    <div class="radar-ring ring-three"></div>
+
+                    <div class="radar-cross horizontal"></div>
+                    <div class="radar-cross vertical"></div>
+
+                    <div class="radar-sweep"></div>
+
+                    <div class="radar-center">
+                        <span>AG</span>
+                    </div>
+
+                    <div class="radar-point point-one"></div>
+                    <div class="radar-point point-two"></div>
+                    <div class="radar-point point-three"></div>
+
+                    <div class="radar-label label-one">
+                        <span>01</span>
+                        EMAIL DETECTED
+                    </div>
+
+                    <div class="radar-label label-two">
+                        <span>02</span>
+                        LOGIN ANOMALY
+                    </div>
+
+                    <div class="radar-label label-three">
+                        <span>03</span>
+                        FILE ACCESS
+                    </div>
+
+                </div>
+
+                <div class="visual-bottomline">
+
+                    <div>
+                        <small>THREAT MONITOR</small>
+                        <strong>INVESTIGATION REQUIRED</strong>
+                    </div>
+
+                    <div class="visual-alert">
+                        <span></span>
+                        ALERT 001
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- LANDING PAGE BOTTOM -->
+        <section class="landing-bottom">
+
+            <div class="landing-bottom-item">
+                <span>05</span>
+                <p>INVESTIGATION MISSIONS</p>
+            </div>
+
+            <div class="landing-bottom-item">
+                <span>04</span>
+                <p>EVIDENCE RECORDS</p>
+            </div>
+
+            <div class="landing-bottom-item">
+                <span>01</span>
+                <p>FINAL VERDICT</p>
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- INVESTIGATION WORKSPACE -->
+    <main id="workspaceView" class="workspace hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="sidebar-heading">
+                <small>INVESTIGATION</small>
+                <h3>Case File 001</h3>
+                <span class="sidebar-status">
+                    <span></span>
+                    ACTIVE CASE
+                </span>
+            </div>
+
+
+            <!-- PROGRESS -->
+            <div class="progress-section">
+
+                <div class="progress-heading">
+                    <span>CASE PROGRESS</span>
+                    <strong id="progressCount">0 / 5</strong>
+                </div>
+
+                <div class="progress-track">
+                    <div id="progressFill"></div>
+                </div>
+
+                <p>Complete each mission to close the case.</p>
+
+            </div>
+
+
+            <!-- MISSION NAVIGATION -->
+            <div class="mission-list-heading">
+                <span>MISSION FILES</span>
+            </div>
+
+            <nav id="missionNav" class="mission-nav">
+
+                <button class="mission-nav-item active" data-mission="0">
+                    <span class="mission-number">01</span>
+
+                    <span class="mission-nav-text">
+                        <strong>Would You Trust This Email?</strong>
+                        <small>INITIAL ASSESSMENT</small>
+                    </span>
+
+                    <span class="mission-state">●</span>
+                </button>
+
+
+                <button class="mission-nav-item locked" data-mission="1" disabled>
+                    <span class="mission-number">02</span>
+
+                    <span class="mission-nav-text">
+                        <strong>Identify the Red Flags</strong>
+                        <small>FORENSIC TELEMETRY</small>
+                    </span>
+
+                    <span class="mission-state">⌑</span>
+                </button>
+
+
+                <button class="mission-nav-item locked" data-mission="2" disabled>
+                    <span class="mission-number">03</span>
+
+                    <span class="mission-nav-text">
+                        <strong>Investigate the Email</strong>
+                        <small>PROTOCOL ANALYSIS</small>
+                    </span>
+
+                    <span class="mission-state">⌑</span>
+                </button>
+
+
+                <button class="mission-nav-item locked" data-mission="3" disabled>
+                    <span class="mission-number">04</span>
+
+                    <span class="mission-nav-text">
+                        <strong>Examine the Evidence</strong>
+                        <small>DIGITAL FORENSICS</small>
+                    </span>
+
+                    <span class="mission-state">⌑</span>
+                </button>
+
+
+                <button class="mission-nav-item locked" data-mission="4" disabled>
+                    <span class="mission-number">05</span>
+
+                    <span class="mission-nav-text">
+                        <strong>What Really Happened?</strong>
+                        <small>FINAL VERDICT</small>
+                    </span>
+
+                    <span class="mission-state">⌑</span>
+                </button>
+
+            </nav>
+
+
+            <!-- EVIDENCE LOCKER -->
+            <div class="evidence-locker">
+
+                <div class="locker-icon">▤</div>
+
+                <div class="locker-text">
+                    <strong>Evidence Locker</strong>
+                    <small><span id="evidenceCount">0</span> records collected</small>
+                </div>
+
+            </div>
+
+
+            <div class="sidebar-footer">
+                <span>AURELIA GLOBAL</span>
+                <small>INTERNAL SECURITY DIVISION</small>
+            </div>
+
+        </aside>
+
+
+
+        <!-- MAIN CONTENT AREA -->
+        <section class="investigation-main">
+
+            <div class="workspace-topbar">
+
+                <button id="backHome" class="back-button">
+                    ← EXIT INVESTIGATION
+                </button>
+
+                <div class="workspace-status">
+                    <span class="status-dot"></span>
+                    SIMULATION ACTIVE
+                </div>
+
+            </div>
+
+
+            <!-- DYNAMIC MISSION CONTENT -->
+            <div class="mission-area">
+
+                <div class="mission-breadcrumb" id="missionCrumb">
+                    CASE FILE 001 / MISSION 01
+                </div>
+
+                <div id="missionContent" class="mission-content">
+
+                    <!-- JavaScript inserts mission content here -->
+
+                </div>
+
+                <div id="missionFooter" class="mission-footer">
+
+                    <!-- JavaScript inserts mission controls here -->
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- EVIDENCE LOCKER MODAL -->
+    <div id="evidenceModal" class="modal hidden" aria-hidden="true">
+
+        <div class="modal-backdrop" id="closeEvidenceBackdrop"></div>
+
+        <div class="modal-panel">
+
+            <div class="modal-heading">
+
+                <div>
+                    <small>CASE FILE 001</small>
+                    <h2>Evidence Locker</h2>
+                </div>
+
+                <button id="closeEvidence" class="modal-close" aria-label="Close evidence locker">
+                    ×
+                </button>
+
+            </div>
+
+            <p class="modal-description">
+                Review the digital evidence collected during your investigation.
+            </p>
+
+            <div id="evidenceList" class="evidence-list">
+
+                <div class="empty-evidence">
+                    <span>▤</span>
+                    <strong>No evidence collected yet</strong>
+                    <p>Complete investigation tasks to unlock evidence records.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+
+
+    <!-- APPLICATION SCRIPT -->
+    <script src="app.js"></script>
+
+</body>
+</html>
