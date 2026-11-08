@@ -23,14 +23,6 @@ Operation Blackout takes participants through five interactive missions:
 
 Each mission introduces a new piece of the investigation, challenging participants to think critically and connect the evidence.
 
-## ✨ Features
-
-- **Interactive Email Investigation** — Examine a suspicious corporate email and decide how to respond.
-- **Red Flag Detection** — Identify suspicious domains, mismatched addresses, urgency tactics, and other phishing indicators.
-- **Email Authentication Analysis** — Investigate SPF, DKIM, and DMARC results and understand why authentication does not automatically mean an email is trustworthy.
-- **Digital Evidence Locker** — Inspect recovered email, browser, credential, authentication, and file-access records.
-- **Incident Timeline Challenge** — Reconstruct the sequence of events using shuffled evidence-based clues without timestamp shortcuts.
-- **Final Incident Verdict** — Classify the attack, recommend an appropriate response, and assess potential data exposure.
 
 ## 🏆 Investigator Ranking System
 
