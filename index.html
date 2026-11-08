@@ -2,360 +2,2956 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0D0A2C">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0D0A2C">
+<title>Digital Detective | Operation Blackout</title>
 
-    <title>Digital Detective | Operation Blackout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #0D0A2C;
+    --surface: #151137;
+    --surface2: #1C1747;
+    --surface3: #241D57;
+    --purple: #9857F9;
+    --pink: #D84CFF;
+    --cyan: #52D8FF;
+    --green: #55E6B0;
+    --red: #FF6D91;
+    --yellow: #FFD477;
+    --text: #F6F2FF;
+    --muted: #A49ABF;
+    --border: rgba(185,157,255,.17);
+    --radius: 16px;
+}
 
-    <link rel="stylesheet" href="styles.css">
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse at 15% 0%, rgba(116,65,213,.16), transparent 35%),
+        radial-gradient(ellipse at 90% 20%, rgba(82,216,255,.07), transparent 30%),
+        var(--bg);
+    color: var(--text);
+    font-family: "Manrope", sans-serif;
+}
+
+button, input, select {
+    font: inherit;
+}
+
+button { cursor: pointer; }
+
+.hidden { display: none !important; }
+
+.mono {
+    font-family: "DM Mono", monospace;
+}
+
+.muted { color: var(--muted); }
+
+.small { font-size: 12px; }
+
+.eyebrow {
+    color: var(--cyan);
+    font-family: "DM Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.topbar {
+    height: 70px;
+    padding: 0 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,10,44,.88);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(16px);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg,var(--purple),var(--pink));
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    box-shadow: 0 0 25px rgba(152,87,249,.3);
+}
+
+.brand-name {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.brand-sub {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-top: 3px;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-status {
+    color: var(--green);
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-family: "DM Mono", monospace;
+}
+
+.button {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 17px;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--surface2);
+    transition: .2s ease;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+    border-color: var(--purple);
+}
+
+.button-primary {
+    background: linear-gradient(110deg,var(--purple),#7445D5);
+    border: 0;
+    box-shadow: 0 8px 24px rgba(119,69,213,.22);
+}
+
+.button-primary:hover {
+    box-shadow: 0 10px 30px rgba(152,87,249,.4);
+}
+
+.button-ghost { background: transparent; }
+
+.button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.home {
+    max-width: 1180px;
+    margin: auto;
+    padding: 65px 28px 90px;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 55px;
+    align-items: center;
+    min-height: 490px;
+}
+
+.hero h1 {
+    font-size: clamp(42px,6vw,70px);
+    line-height: 1.04;
+    letter-spacing: -3px;
+    margin: 18px 0;
+}
+
+.hero h1 span {
+    background: linear-gradient(90deg,#A77BFF,#E46AFF,#52D8FF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-description {
+    max-width: 540px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.9;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+}
+
+.hero-visual {
+    position: relative;
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    background:
+        radial-gradient(circle,rgba(152,87,249,.15),transparent 65%),
+        linear-gradient(145deg,rgba(36,29,87,.8),rgba(21,17,55,.7));
+    overflow: hidden;
+}
+
+.radar {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    border: 1px solid rgba(82,216,255,.35);
+    position: relative;
+    background: repeating-radial-gradient(circle,transparent 0 38px,rgba(82,216,255,.12) 39px 40px);
+}
+
+.radar:before, .radar:after {
+    content: "";
+    position: absolute;
+    background: rgba(82,216,255,.18);
+}
+
+.radar:before {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+}
+
+.radar:after {
+    height: 1px;
+    width: 100%;
+    top: 50%;
+}
+
+.radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,transparent 0 290deg,rgba(82,216,255,.25) 360deg);
+    animation: sweep 7s linear infinite;
+}
+
+.radar-point {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: var(--pink);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--pink);
+}
+
+.point-one { top: 25%; left: 65%; }
+.point-two { top: 62%; left: 28%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+.point-three { top: 48%; left: 72%; background: var(--green); box-shadow: 0 0 15px var(--green); }
+
+@keyframes sweep {
+    to { transform: rotate(360deg); }
+}
+
+.visual-label {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    color: var(--cyan);
+    font: 10px "DM Mono",monospace;
+    letter-spacing: 2px;
+}
+
+.home-stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 15px;
+    margin-top: 38px;
+}
+
+.stat-card {
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(21,17,55,.7);
+}
+
+.stat-number {
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+/* WORKSPACE */
+
+.workspace {
+    max-width: 1500px;
+    margin: auto;
+    padding: 25px;
+    display: grid;
+    grid-template-columns: 285px minmax(0,1fr);
+    gap: 25px;
+    align-items: start;
+}
+
+.sidebar {
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: rgba(21,17,55,.9);
+    padding: 20px;
+}
+
+.sidebar-heading {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 18px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 9px;
+}
+
+.progress-track {
+    height: 6px;
+    background: #30285B;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg,var(--purple),var(--cyan));
+    transition: width .4s ease;
+}
+
+.progress-message {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 9px;
+}
+
+.mission-nav {
+    display: grid;
+    gap: 7px;
+    margin-top: 24px;
+}
+
+.mission-link {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 10px;
+    font-size: 11px;
+    transition: .2s;
+}
+
+.mission-link:hover:not(.locked) {
+    background: var(--surface2);
+    color: white;
+}
+
+.mission-link.active {
+    color: white;
+    background: rgba(152,87,249,.15);
+    border-color: rgba(152,87,249,.45);
+}
+
+.mission-link.completed { color: var(--green); }
+
+.mission-link.locked {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.mission-state {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: var(--surface3);
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.mission-link.active .mission-state {
+    background: var(--purple);
+    color: white;
+}
+
+.investigator-rank {
+    border: 1px solid rgba(152,87,249,.3);
+    border-radius: 13px;
+    padding: 14px;
+    margin-top: 24px;
+    background: linear-gradient(145deg,rgba(152,87,249,.13),rgba(21,17,55,.5));
+}
+
+.rank-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font: 9px "DM Mono",monospace;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+}
+
+.rank-level {
+    color: var(--cyan);
+}
+
+.rank-name {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 12px 0 5px;
+}
+
+.rank-points {
+    font: 12px "DM Mono",monospace;
+    color: var(--cyan);
+}
+
+.rank-points span { color: var(--muted); }
+
+.rank-progress-track {
+    height: 5px;
+    background: #30285B;
+    border-radius: 10px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+#rankProgressFill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg,var(--purple),var(--pink));
+    transition: width .4s ease;
+}
+
+.rank-next {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+.rank-ladder { margin-top: 12px; }
+
+.rank-ladder summary {
+    cursor: pointer;
+    color: var(--cyan);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.rank-ladder ol {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: grid;
+    gap: 7px;
+}
+
+.rank-ladder li {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 9px;
+    padding: 5px 7px;
+    border-radius: 6px;
+}
+
+.rank-ladder li.current {
+    background: rgba(152,87,249,.2);
+    color: white;
+}
+
+.rank-ladder li.achieved { color: var(--green); }
+
+.locker-button {
+    margin-top: 15px;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    background: var(--surface2);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.sidebar-foot {
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+    font-size: 9px;
+    line-height: 1.7;
+    color: var(--muted);
+}
+
+.main-panel { min-width: 0; }
+
+.main-topline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.back-button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 5px 0;
+}
+
+.back-button:hover { color: white; }
+
+.mission-status {
+    font: 10px "DM Mono",monospace;
+    color: var(--yellow);
+}
+
+.mission-status.completed { color: var(--green); }
+
+.mission-content {
+    min-height: 500px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: rgba(21,17,55,.82);
+    padding: clamp(20px,4vw,38px);
+}
+
+.mission-kicker {
+    color: var(--cyan);
+    font: 10px "DM Mono",monospace;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.mission-title {
+    font-size: clamp(27px,4vw,40px);
+    letter-spacing: -1.5px;
+    margin: 0 0 12px;
+}
+
+.mission-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 0 30px;
+}
+
+.section-label {
+    font: 10px "DM Mono",monospace;
+    color: var(--cyan);
+    letter-spacing: 1.7px;
+    margin: 28px 0 13px;
+}
+
+.panel, .email-window, .analysis-card, .log-item, .verdict-question {
+    background: rgba(28,23,71,.75);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+}
+
+.email-window { overflow: hidden; }
+
+.email-window-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: #211A50;
+    border-bottom: 1px solid var(--border);
+}
+
+.window-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--purple);
+}
+
+.email-window-title {
+    margin-left: 9px;
+    font: 9px "DM Mono",monospace;
+    color: var(--muted);
+    letter-spacing: 1px;
+}
+
+.email-meta { padding: 16px; }
+
+.email-meta-row {
+    display: grid;
+    grid-template-columns: 85px 1fr;
+    gap: 10px;
+    font-size: 11px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    overflow-wrap: anywhere;
+}
+
+.email-meta-row span { color: var(--muted); }
+
+.email-body {
+    padding: 20px;
+    margin: 0 16px 16px;
+    border-radius: 10px;
+    background: #F5F2FC;
+    color: #28213E;
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.email-body h4 { margin-top: 0; }
+
+.fake-link {
+    color: #5D39C7;
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
+
+.email-signature {
+    border-top: 1px solid #ddd6ec;
+    padding-top: 12px;
+    margin-top: 20px;
+    font-weight: 700;
+}
+
+.email-actions, .hotspot-grid, .analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+}
+
+.choice-button, .hotspot {
+    text-align: left;
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: white;
+    background: var(--surface2);
+    transition: .2s;
+}
+
+.choice-button:hover, .hotspot:hover {
+    border-color: var(--purple);
+    transform: translateY(-2px);
+}
+
+.choice-button.selected, .hotspot.selected {
+    border-color: var(--purple);
+    background: rgba(152,87,249,.2);
+}
+
+.choice-button strong, .hotspot strong {
+    display: block;
+    font-size: 12px;
+}
+
+.choice-button small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 7px;
+    line-height: 1.5;
+}
+
+.hotspot-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 13px;
+}
+
+.hotspot-number {
+    color: var(--cyan);
+    font: 9px "DM Mono",monospace;
+    letter-spacing: 1px;
+}
+
+.hotspot-check { color: var(--green); }
+
+.hotspot p {
+    font-size: 10px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-bottom: 0;
+}
+
+.callout {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    border-radius: 10px;
+    background: rgba(152,87,249,.08);
+    font-size: 11px;
+    line-height: 1.8;
+    color: #DDD5F4;
+}
+
+.callout.success {
+    border-left-color: var(--green);
+    background: rgba(85,230,176,.07);
+}
+
+.callout.warning {
+    border-left-color: var(--yellow);
+    background: rgba(255,212,119,.07);
+}
+
+.callout.error {
+    border-left-color: var(--red);
+    background: rgba(255,109,145,.07);
+}
+
+.tag {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font: 9px "DM Mono",monospace;
+    letter-spacing: .6px;
+    background: rgba(152,87,249,.17);
+    color: #C6A8FF;
+}
+
+.tag.green { background: rgba(85,230,176,.12); color: var(--green); }
+.tag.red { background: rgba(255,109,145,.12); color: var(--red); }
+.tag.yellow { background: rgba(255,212,119,.12); color: var(--yellow); }
+.tag.cyan { background: rgba(82,216,255,.12); color: var(--cyan); }
+
+.analysis-card { padding: 18px; }
+
+.analysis-card h3 { margin: 0 0 12px; font-size: 15px; }
+
+.analysis-card p {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.7;
+    min-height: 38px;
+}
+
+.analysis-card code {
+    font: 10px "DM Mono",monospace;
+    color: var(--cyan);
+    overflow-wrap: anywhere;
+}
+
+.analysis-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    margin-top: 9px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface2);
+    cursor: pointer;
+}
+
+.analysis-option.selected {
+    border-color: var(--purple);
+    background: rgba(152,87,249,.14);
+}
+
+.analysis-option input { accent-color: var(--purple); margin-top: 3px; }
+
+.analysis-option strong {
+    display: block;
+    font-size: 11px;
+}
+
+.analysis-option small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+.log-list { display: grid; gap: 9px; }
+
+.log-item {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.log-item.inspected { border-color: rgba(85,230,176,.35); }
+
+.log-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--surface3);
+    color: var(--cyan);
+    flex-shrink: 0;
+}
+
+.log-item h4 { margin: 0; font-size: 11px; }
+
+.log-item p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.log-item button {
+    margin-left: auto;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface3);
+    border-radius: 8px;
+    color: white;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.timeline-board {
+    display: grid;
+    gap: 10px;
+}
+
+.timeline-slot {
+    display: grid;
+    grid-template-columns: 35px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.timeline-slot-number {
+    display: grid;
+    place-items: center;
+    height: 35px;
+    border-radius: 9px;
+    background: var(--surface3);
+    color: var(--cyan);
+    font: 11px "DM Mono",monospace;
+}
+
+.timeline-slot select {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 11px;
+    color: white;
+    background: #211A50;
+    font-size: 11px;
+}
+
+.timeline-slot select:focus {
+    outline: 1px solid var(--purple);
+}
+
+.timeline-slot option {
+    background: #211A50;
+    color: white;
+}
+
+.timeline-check { margin-top: 18px; }
+
+.verdict-question {
+    padding: 18px;
+    margin-bottom: 13px;
+}
+
+.verdict-question h3 {
+    font-size: 12px;
+    margin: 0 0 13px;
+    line-height: 1.6;
+}
+
+.verdict-options { display: grid; gap: 8px; }
+
+.verdict-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1.7;
+}
+
+.verdict-option.selected {
+    border-color: var(--purple);
+    background: rgba(152,87,249,.14);
+}
+
+.verdict-option input {
+    accent-color: var(--purple);
+    margin-top: 3px;
+}
+
+.mission-feedback { margin-top: 18px; }
+
+.mission-footer {
+    padding: 17px 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.footer-hint {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.footer-right {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.evidence-record {
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: var(--surface2);
+}
+
+.evidence-record h3 { font-size: 13px; }
+
+.evidence-record pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: 10px/1.8 "DM Mono",monospace;
+    color: var(--cyan);
+    background: #100D30;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 0;
+}
+
+.report-panel {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: rgba(28,23,71,.7);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.report-header h3 { margin: 8px 0; }
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 10px;
+}
+
+.report-table td {
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.report-table td:first-child {
+    color: var(--muted);
+    width: 38%;
+}
+
+.achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+    margin: 12px 0;
+}
+
+.achievement-card {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    opacity: .45;
+}
+
+.achievement-card.unlocked {
+    opacity: 1;
+    border-color: rgba(85,230,176,.4);
+    background: rgba(85,230,176,.06);
+}
+
+.achievement-icon { font-size: 20px; }
+
+.achievement-card strong, .achievement-card small {
+    display: block;
+}
+
+.achievement-card strong { font-size: 10px; }
+
+.achievement-card small {
+    color: var(--muted);
+    font-size: 8px;
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(5,3,20,.82);
+    backdrop-filter: blur(9px);
+}
+
+.modal {
+    width: min(700px,100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: #151137;
+    box-shadow: 0 25px 100px rgba(0,0,0,.4);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 { font-size: 16px; }
+
+.close-button {
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: white;
+    border-radius: 8px;
+    padding: 8px 11px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translate(-50%,20px);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: #241D57;
+    border: 1px solid var(--border);
+    padding: 13px 20px;
+    border-radius: 10px;
+    color: white;
+    font-size: 11px;
+    box-shadow: 0 10px 35px rgba(0,0,0,.3);
+    transition: .25s;
+    width: max-content;
+    max-width: 90%;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%,0);
+}
+
+.toast.error { border-color: var(--red); }
+.toast.success { border-color: var(--green); }
+
+.completion-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8,5,30,.88);
+    backdrop-filter: blur(10px);
+}
+
+.completion-card {
+    width: min(430px,100%);
+    text-align: center;
+    padding: 35px 25px;
+    border: 1px solid rgba(152,87,249,.5);
+    border-radius: 20px;
+    background: linear-gradient(145deg,#241D57,#151137);
+    animation: pop .3s ease;
+}
+
+@keyframes pop {
+    from { transform: scale(.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.completion-symbol {
+    font-size: 45px;
+    color: var(--green);
+}
+
+.completion-card h2 { font-size: 22px; }
+
+.completion-card p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.completion-points {
+    color: var(--cyan);
+    font: 11px "DM Mono",monospace;
+    margin: 18px 0;
+}
+
+@media(max-width:900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-visual { min-height: 290px; }
+    .workspace { grid-template-columns: 1fr; }
+    .sidebar {
+        position: static;
+        max-height: none;
+    }
+    .mission-nav {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:580px) {
+    .topbar { padding: 0 15px; }
+    .top-status { display: none; }
+    .home { padding: 40px 17px; }
+    .hero h1 { letter-spacing: -2px; }
+    .home-stats { grid-template-columns: 1fr; }
+    .workspace { padding: 13px; }
+    .mission-content { padding: 19px; }
+    .email-actions, .hotspot-grid, .analysis-grid,
+    .achievement-grid { grid-template-columns: 1fr; }
+    .mission-nav { grid-template-columns: 1fr; }
+    .email-meta-row { grid-template-columns: 65px 1fr; }
+    .log-item { align-items: flex-start; }
+    .log-item button { padding: 7px; }
+    .mission-footer { align-items: stretch; }
+    .footer-right { width: 100%; }
+    .footer-right .button { flex: 1; }
+}
+
+@media print {
+    body { background: white !important; color: #111 !important; }
+    .topbar, .sidebar, .main-topline, .mission-footer,
+    .button, .toast, .modal-backdrop, .completion-overlay {
+        display: none !important;
+    }
+    .workspace { display: block; padding: 0; }
+    .mission-content, .report-panel {
+        background: white !important;
+        color: #111 !important;
+        border: 0 !important;
+    }
+    .report-table td, .report-panel p, .report-panel strong,
+    .report-panel h3, .achievement-card strong {
+        color: #111 !important;
+    }
+    .callout { color: #111 !important; }
+}
+</style>
 </head>
 
 <body>
 
-    <div class="background-grid"></div>
-    <div class="background-glow glow-one"></div>
-    <div class="background-glow glow-two"></div>
-
-    <!-- TOP BAR -->
-    <header class="topbar">
-        <button class="brand" id="brandHome" aria-label="Return home">
-            <span class="brand-symbol">D<span>.</span></span>
-            <span class="brand-text">
-                <strong>DIGITAL DETECTIVE</strong>
-                <small>OPERATION BLACKOUT</small>
-            </span>
-        </button>
-
-        <div class="topbar-right">
-            <span class="case-indicator">
-                <span class="live-dot"></span>
-                CASE ACTIVE
-            </span>
-
-            <button class="button button-ghost button-small" id="resetProgress">
-                <span>↻</span> Reset Case
-            </button>
+<header class="topbar">
+    <div class="brand" id="brandHome">
+        <div class="brand-mark">D</div>
+        <div>
+            <div class="brand-name">DIGITAL DETECTIVE</div>
+            <div class="brand-sub">OPERATION BLACKOUT</div>
         </div>
-    </header>
+    </div>
 
-    <!-- HOME -->
-    <main id="homeView" class="home-view">
+    <div class="topbar-right">
+        <span class="top-status">● SYSTEM ONLINE</span>
+        <button class="button button-ghost" id="resetProgress">Reset case ↻</button>
+    </div>
+</header>
 
-        <section class="hero">
-            <div class="hero-copy">
-                <div class="eyebrow">
-                    <span class="eyebrow-line"></span>
-                    AURELIA GLOBAL · SECURITY OPERATIONS
-                </div>
+<!-- HOME -->
 
-                <h1>
-                    Think like a
-                    <span class="gradient-text">cyber detective.</span>
-                </h1>
+<section class="home" id="homeView">
+    <div class="hero">
+        <div>
+            <div class="eyebrow">AURELIA GLOBAL · SECURITY INVESTIGATION</div>
 
-                <p class="hero-description">
-                    A suspicious email. A compromised account. A trail of digital evidence.
-                    Your mission is to uncover what really happened.
-                </p>
+            <h1>Think like a detective.<br><span>Investigate like an expert.</span></h1>
 
-                <div class="hero-actions">
-                    <button class="button button-primary" id="startInvestigation">
-                        Begin Investigation <span>→</span>
-                    </button>
-
-                    <span class="hero-note">
-                        <span class="live-dot"></span>
-                        INTERACTIVE INCIDENT SIMULATION
-                    </span>
-                </div>
-
-                <div class="hero-stats">
-                    <div>
-                        <strong>05</strong>
-                        <span>MISSIONS</span>
-                    </div>
-                    <div>
-                        <strong>04</strong>
-                        <span>EVIDENCE RECORDS</span>
-                    </div>
-                    <div>
-                        <strong>01</strong>
-                        <span>FINAL VERDICT</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hero-visual">
-                <div class="visual-orbit orbit-one"></div>
-                <div class="visual-orbit orbit-two"></div>
-                <div class="visual-orbit orbit-three"></div>
-
-                <div class="visual-core">
-                    <div class="core-inner">
-                        <span class="core-icon">⌁</span>
-                        <span class="core-label">SOC</span>
-                        <span class="core-status">SYSTEM ONLINE</span>
-                    </div>
-                </div>
-
-                <div class="floating-card card-threat">
-                    <span class="mini-icon danger">!</span>
-                    <div>
-                        <strong>Threat detected</strong>
-                        <small>Suspicious email</small>
-                    </div>
-                    <span class="card-pulse"></span>
-                </div>
-
-                <div class="floating-card card-evidence">
-                    <span class="mini-icon cyan">⌕</span>
-                    <div>
-                        <strong>Evidence collected</strong>
-                        <small>Awaiting analysis</small>
-                    </div>
-                </div>
-
-                <div class="visual-tag">OPERATION BLACKOUT</div>
-            </div>
-        </section>
-
-        <section class="home-bottom">
-            <div class="home-bottom-heading">
-                <span>YOUR OBJECTIVE</span>
-                <span>01 / INCIDENT RESPONSE</span>
-            </div>
-
-            <div class="objective-grid">
-                <article class="objective-card">
-                    <span class="objective-number">01</span>
-                    <h3>Investigate</h3>
-                    <p>Examine the suspicious message and identify warning signs.</p>
-                </article>
-
-                <article class="objective-card">
-                    <span class="objective-number">02</span>
-                    <h3>Correlate</h3>
-                    <p>Connect email, authentication, and access logs.</p>
-                </article>
-
-                <article class="objective-card">
-                    <span class="objective-number">03</span>
-                    <h3>Conclude</h3>
-                    <p>Reconstruct the incident and submit your verdict.</p>
-                </article>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- INVESTIGATION WORKSPACE -->
-    <main id="workspaceView" class="workspace hidden">
-
-        <aside class="sidebar">
-
-            <div class="sidebar-heading">
-                <span>CASE FILE</span>
-                <span class="case-number">#AG-0811</span>
-            </div>
-
-            <div class="progress-card">
-                <div class="progress-top">
-                    <span>MISSION PROGRESS</span>
-                    <strong id="progressCount">0 / 5</strong>
-                </div>
-
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-
-                <p id="progressMessage">Investigation not yet complete</p>
-            </div>
-
-            <div class="mission-nav-heading">INVESTIGATION PHASES</div>
-
-            <nav id="missionNav" class="mission-nav" aria-label="Investigation missions">
-
-                <button class="mission-link active" data-mission="0">
-                    <span class="mission-index">01</span>
-                    <span class="mission-link-text">
-                        <strong>Would You Trust This Email?</strong>
-                        <small>Initial assessment</small>
-                    </span>
-                    <span class="mission-state">●</span>
-                </button>
-
-                <button class="mission-link locked" data-mission="1">
-                    <span class="mission-index">02</span>
-                    <span class="mission-link-text">
-                        <strong>Identify the Red Flags.</strong>
-                        <small>Threat indicators</small>
-                    </span>
-                    <span class="mission-state">○</span>
-                </button>
-
-                <button class="mission-link locked" data-mission="2">
-                    <span class="mission-index">03</span>
-                    <span class="mission-link-text">
-                        <strong>Investigate the Email.</strong>
-                        <small>Technical analysis</small>
-                    </span>
-                    <span class="mission-state">○</span>
-                </button>
-
-                <button class="mission-link locked" data-mission="3">
-                    <span class="mission-index">04</span>
-                    <span class="mission-link-text">
-                        <strong>Examine the Evidence.</strong>
-                        <small>Digital forensics</small>
-                    </span>
-                    <span class="mission-state">○</span>
-                </button>
-
-                <button class="mission-link locked" data-mission="4">
-                    <span class="mission-index">05</span>
-                    <span class="mission-link-text">
-                        <strong>What Really Happened?</strong>
-                        <small>Final verdict</small>
-                    </span>
-                    <span class="mission-state">○</span>
-                </button>
-
-            </nav>
-
-            <!-- INVESTIGATOR RANK: FIXED POSITION IN SIDEBAR STRUCTURE -->
-            <section class="investigator-rank" aria-live="polite">
-
-                <div class="rank-heading">
-                    <span class="rank-heading-icon">✦</span>
-                    <span>INVESTIGATOR PROFILE</span>
-                </div>
-
-                <div class="rank-level-row">
-                    <span>CURRENT RANK</span>
-                    <span id="rankLevel">LEVEL 01</span>
-                </div>
-
-                <h3 id="rankName">Trainee Analyst</h3>
-
-                <div class="rank-points">
-                    <strong id="investigationPoints">0</strong>
-                    <span>/ 380 IP</span>
-                </div>
-
-                <div class="rank-progress-track">
-                    <div id="rankProgressFill"></div>
-                </div>
-
-                <p id="rankNext">Next rank: Threat Spotter · 80 IP</p>
-
-                <details class="rank-ladder">
-                    <summary>Rank progression <span>⌄</span></summary>
-
-                    <ol id="rankList">
-                        <li data-rank="0"><span>01</span> Trainee Analyst <b>0</b></li>
-                        <li data-rank="1"><span>02</span> Threat Spotter <b>80</b></li>
-                        <li data-rank="2"><span>03</span> Security Investigator <b>160</b></li>
-                        <li data-rank="3"><span>04</span> Cyber Detective <b>240</b></li>
-                        <li data-rank="4"><span>05</span> Elite Incident Responder <b>320</b></li>
-                    </ol>
-                </details>
-
-            </section>
-
-            <button class="evidence-locker" id="evidenceLocker">
-                <span class="locker-icon">▣</span>
-                <span>
-                    <strong>Evidence Locker</strong>
-                    <small>Collected records</small>
-                </span>
-                <span class="locker-count" id="evidenceCount">0</span>
-            </button>
-
-            <div class="sidebar-footer">
-                <span class="live-dot"></span>
-                SECURE SESSION
-                <span>v1.0</span>
-            </div>
-
-        </aside>
-
-        <section class="workspace-main">
-
-            <div class="workspace-toolbar">
-                <button class="back-home" id="backHome">← Home</button>
-
-                <div class="toolbar-status">
-                    <span class="live-dot"></span>
-                    INCIDENT AG-0811
-                </div>
-            </div>
-
-            <div class="mission-header">
-                <div class="mission-breadcrumb">
-                    <span>OPERATION BLACKOUT</span>
-                    <span>/</span>
-                    <span id="missionCrumb">MISSION 01</span>
-                </div>
-
-                <div class="mission-status-pill" id="missionStatus">
-                    <span class="status-dot"></span>
-                    IN PROGRESS
-                </div>
-            </div>
-
-            <div id="missionContent" class="mission-content"></div>
-
-            <div id="missionFooter" class="mission-footer"></div>
-
-        </section>
-
-    </main>
-
-    <!-- EVIDENCE MODAL -->
-    <div class="modal-overlay hidden" id="evidenceModal">
-        <div class="modal-backdrop" id="closeEvidenceBackdrop"></div>
-
-        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="evidenceModalTitle">
-
-            <div class="modal-header">
-                <div>
-                    <div class="eyebrow">CASE AG-0811</div>
-                    <h2 id="evidenceModalTitle">Evidence Locker</h2>
-                </div>
-
-                <button class="modal-close" id="closeEvidence" aria-label="Close evidence locker">×</button>
-            </div>
-
-            <p class="modal-description">
-                Digital records recovered during the investigation.
-                Examine each item and connect the evidence.
+            <p class="hero-description">
+                A suspicious email. An unfamiliar login. Sensitive company files.
+                Something is happening inside Aurelia Global, and the evidence is waiting
+                to be uncovered. Your task is to investigate the incident, connect the clues,
+                and determine what really happened.
             </p>
 
-            <div id="evidenceList" class="evidence-list"></div>
+            <div class="hero-actions">
+                <button class="button button-primary" id="startInvestigation">
+                    Begin investigation →
+                </button>
+                <span class="button button-ghost" style="cursor:default;">
+                    5 investigative missions
+                </span>
+            </div>
+        </div>
 
-        </section>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-    <!-- COMPLETION EFFECT -->
-    <div id="completionEffect" class="completion-effect hidden">
-        <div class="completion-box">
-            <div class="completion-symbol">✓</div>
-            <span>MISSION COMPLETE</span>
-            <h2 id="completionTitle">Investigation advanced</h2>
-            <p id="completionDescription">Evidence successfully recorded.</p>
-            <div id="completionPoints"></div>
+        <div class="hero-visual">
+            <div class="radar">
+                <div class="radar-sweep"></div>
+                <span class="radar-point point-one"></span>
+                <span class="radar-point point-two"></span>
+                <span class="radar-point point-three"></span>
+            </div>
+            <div class="visual-label">SECURITY OPERATIONS CENTRE · LIVE MONITORING</div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <div class="home-stats">
+        <div class="stat-card">
+            <div class="stat-number">05</div>
+            <div class="stat-label">Investigation missions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">05</div>
+            <div class="stat-label">Digital evidence records</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">01</div>
+            <div class="stat-label">Incident to solve</div>
+        </div>
+    </div>
+</section>
 
+<!-- INVESTIGATION WORKSPACE -->
+
+<section class="workspace hidden" id="workspaceView">
+
+    <aside class="sidebar">
+        <div class="sidebar-heading">INVESTIGATION PROGRESS</div>
+
+        <div class="progress-info">
+            <span>Mission completion</span>
+            <strong id="progressCount">0 / 5</strong>
+        </div>
+
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="progress-message" id="progressMessage">5 missions remaining</div>
+
+        <nav class="mission-nav" id="missionNav">
+            <button class="mission-link active" data-mission="0">
+                <span class="mission-state">●</span>
+                <span>01 · Initial assessment</span>
+            </button>
+            <button class="mission-link locked" data-mission="1">
+                <span class="mission-state">○</span>
+                <span>02 · Red flags</span>
+            </button>
+            <button class="mission-link locked" data-mission="2">
+                <span class="mission-state">○</span>
+                <span>03 · Email analysis</span>
+            </button>
+            <button class="mission-link locked" data-mission="3">
+                <span class="mission-state">○</span>
+                <span>04 · Digital evidence</span>
+            </button>
+            <button class="mission-link locked" data-mission="4">
+                <span class="mission-state">○</span>
+                <span>05 · Final verdict</span>
+            </button>
+        </nav>
+
+        <!-- RANK CARD: ALWAYS IN THE SIDEBAR -->
+
+        <section class="investigator-rank" aria-live="polite">
+            <div class="rank-heading">
+                <span>INVESTIGATOR PROFILE</span>
+                <span class="rank-level" id="rankLevel">LEVEL 01</span>
+            </div>
+
+            <div class="rank-name" id="rankName">Trainee Analyst</div>
+
+            <div class="rank-points">
+                <strong id="investigationPoints">0</strong>
+                <span>/ 380 IP</span>
+            </div>
+
+            <div class="rank-progress-track">
+                <div id="rankProgressFill"></div>
+            </div>
+
+            <div class="rank-next" id="rankNext">
+                Next rank: Threat Spotter · 80 IP
+            </div>
+
+            <details class="rank-ladder">
+                <summary>View rank progression</summary>
+                <ol id="rankList">
+                    <li data-rank="0"><span>Trainee Analyst</span><span>0 IP</span></li>
+                    <li data-rank="1"><span>Threat Spotter</span><span>80 IP</span></li>
+                    <li data-rank="2"><span>Security Investigator</span><span>160 IP</span></li>
+                    <li data-rank="3"><span>Cyber Detective</span><span>240 IP</span></li>
+                    <li data-rank="4"><span>Elite Incident Responder</span><span>320 IP</span></li>
+                </ol>
+            </details>
+        </section>
+
+        <button class="locker-button" id="evidenceLocker">
+            <span>▣ Evidence locker</span>
+            <span id="evidenceCount">0</span>
+        </button>
+
+        <div class="sidebar-foot">
+            AURELIA GLOBAL · INTERNAL INVESTIGATION<br>
+            CASE REFERENCE: AG-0811
+        </div>
+    </aside>
+
+    <main class="main-panel">
+        <div class="main-topline">
+            <button class="back-button" id="backHome">← Back to briefing</button>
+            <div class="mission-status" id="missionStatus">● IN PROGRESS</div>
+        </div>
+
+        <div class="mission-content" id="missionContent"></div>
+
+        <div class="mission-footer" id="missionFooter"></div>
+    </main>
+</section>
+
+<!-- EVIDENCE MODAL -->
+
+<div class="modal-backdrop hidden" id="evidenceModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="eyebrow">RECOVERED MATERIAL</div>
+                <h2 id="evidenceModalTitle">Evidence locker</h2>
+            </div>
+            <button class="close-button" id="closeEvidence">✕</button>
+        </div>
+        <div id="evidenceList"></div>
+    </div>
+</div>
+
+<!-- COMPLETION POPUP -->
+
+<div class="completion-overlay hidden" id="completionEffect">
+    <div class="completion-card">
+        <div class="completion-symbol">✦</div>
+        <div class="eyebrow">MISSION UPDATE</div>
+        <h2 id="completionTitle">Mission complete</h2>
+        <p id="completionDescription">Your investigation has been updated.</p>
+        <div class="completion-points" id="completionPoints">0 / 380 INVESTIGATION POINTS</div>
+        <button class="button button-primary" id="closeCompletion">Continue</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   CONFIGURATION AND STATE
+========================================================= */
+
+const STORAGE_KEY = "digitalDetectiveOperationBlackout";
+
+const RANKS = [
+    { name: "Trainee Analyst", threshold: 0 },
+    { name: "Threat Spotter", threshold: 80 },
+    { name: "Security Investigator", threshold: 160 },
+    { name: "Cyber Detective", threshold: 240 },
+    { name: "Elite Incident Responder", threshold: 320 }
+];
+
+const MISSIONS = [
+    "Would You Trust This Email?",
+    "Identify the Red Flags.",
+    "Investigate the Email.",
+    "Examine the Evidence.",
+    "What Really Happened?"
+];
+
+const ACHIEVEMENTS = [
+    { id: "eagleEye", name: "Eagle Eye", description: "Identify all four red flags.", icon: "⌕" },
+    { id: "headerHunter", name: "Header Hunter", description: "Correctly interpret email authentication.", icon: "⌁" },
+    { id: "evidenceExpert", name: "Evidence Expert", description: "Inspect every evidence log.", icon: "▣" },
+    { id: "timelineMaster", name: "Timeline Master", description: "Correctly reconstruct the incident.", icon: "◷" },
+    { id: "incidentCommander", name: "Incident Commander", description: "Answer all three final questions correctly.", icon: "✦" }
+];
+
+const EVIDENCE = [
+    {
+        id: "email",
+        title: "Evidence 01 — Suspicious Email",
+        source: "Employee mailbox",
+        description: "Original phishing message.",
+        content: `From: ITsupport@aureliaglobal-support.com
+To: employee@aureliaglobal.coY
+Reply-To: collect.aurelia@mail-relay.net
+Subject: Immediate Action Required — Account Verification
+Date: 08 Nov 2026 07:42 UTC
+
+Your account access will be suspended unless you
+verify your credentials immediately.
+
+Verification link:
+https://aureliaglobal-support.com/verify-account
+
+Regards,
+Aurelia Global IT Support`
+    },
+    {
+        id: "browser",
+        title: "Evidence 02 — Browser Activity",
+        source: "Endpoint browser history",
+        description: "Recorded navigation following email interaction.",
+        content: `09:12 — Email opened
+09:14 — aureliaglobal-support.com/verify-account visited
+09:16 — Credentials submitted`
+    },
+    {
+        id: "credentials",
+        title: "Evidence 03 — Credential Submission",
+        source: "Endpoint telemetry",
+        description: "User interaction with a suspicious login page.",
+        content: `09:16:08 — Username submitted
+09:16:11 — Password submitted
+09:16:13 — Redirect to legitimate portal`
+    },
+    {
+        id: "authentication",
+        title: "Evidence 04 — Authentication Logs",
+        source: "Identity platform",
+        description: "Unexpected account authentication.",
+        content: `09:24 — Successful login
+Source: 198.51.100.24
+Device: Unknown browser
+Location: Unfamiliar region
+09:25 — Session established`
+    },
+    {
+        id: "files",
+        title: "Evidence 05 — File Access Logs",
+        source: "Finance file server",
+        description: "Unexpected access after account compromise.",
+        content: `09:27 — Finance directory accessed
+09:27 — Payroll.xlsx opened
+09:28 — Multiple file requests recorded`
+    }
+];
+
+const TIMELINE_EVENTS = [
+    {
+        id: "emailReceived",
+        label: "The suspicious message arrives in the employee's mailbox."
+    },
+    {
+        id: "emailOpened",
+        label: "The employee opens the suspicious message."
+    },
+    {
+        id: "linkVisited",
+        label: "The employee visits the lookalike verification website."
+    },
+    {
+        id: "credentialsSubmitted",
+        label: "The employee enters their account credentials."
+    },
+    {
+        id: "login",
+        label: "An unfamiliar device successfully accesses the account."
+    },
+    {
+        id: "fileAccess",
+        label: "The account accesses files in the finance directory."
+    },
+    {
+        id: "itContacted",
+        label: "The employee reports the suspicious activity to IT."
+    }
+];
+
+/*
+    The event options are deliberately shuffled.
+    No timestamps appear in the timeline activity.
+*/
+
+const TIMELINE_OPTION_ORDER = [
+    "fileAccess",
+    "emailOpened",
+    "itContacted",
+    "credentialsSubmitted",
+    "emailReceived",
+    "login",
+    "linkVisited"
+];
+
+const FINAL_QUESTIONS = [
+    {
+        id: "classification",
+        title: "1. What is the most likely incident classification?",
+        options: [
+            ["phishing", "Credential-harvesting phishing followed by suspected account compromise"],
+            ["malware", "Confirmed malware infection"],
+            ["insider", "Confirmed insider threat"]
+        ]
+    },
+    {
+        id: "action",
+        title: "2. What should the response team prioritise?",
+        options: [
+            ["contain", "Contain the account, revoke sessions, reset credentials, and investigate scope"],
+            ["ignore", "Ignore the login because SPF and DKIM passed"],
+            ["delete", "Delete the email and close the incident"]
+        ]
+    },
+    {
+        id: "impact",
+        title: "3. What can you conclude about data exposure?",
+        options: [
+            ["unknown", "Sensitive files were accessed; confirmed exfiltration and total impact remain unknown"],
+            ["confirmed", "All finance data was definitely exfiltrated"],
+            ["none", "No sensitive data was accessed"]
+        ]
+    }
+];
+
+function defaultState() {
+    return {
+        currentMission: 0,
+        completedMissions: [],
+        unlockedMissions: [0],
+        points: 0,
+        ledger: {},
+        collectedEvidence: [],
+        inspectedLogs: [],
+        answers: {
+            mission1: null,
+            mission2: [],
+            mission3: null,
+            mission4Timeline: [],
+            finalVerdict: {},
+            finalScore: null
+        },
+        achievements: [],
+        finalReport: false
+    };
+}
+
+function loadState() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return defaultState();
+
+        const parsed = JSON.parse(saved);
+        const fresh = defaultState();
+
+        return {
+            ...fresh,
+            ...parsed,
+            answers: { ...fresh.answers, ...(parsed.answers || {}) },
+            ledger: parsed.ledger || {},
+            completedMissions: parsed.completedMissions || [],
+            unlockedMissions: parsed.unlockedMissions || [0],
+            collectedEvidence: parsed.collectedEvidence || [],
+            inspectedLogs: parsed.inspectedLogs || [],
+            achievements: parsed.achievements || []
+        };
+    } catch (error) {
+        console.error("Could not load saved progress:", error);
+        return defaultState();
+    }
+}
+
+let state = loadState();
+let toastTimer = null;
+let completionTimer = null;
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
+}
+
+function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function toast(message, type = "") {
+    const element = $("#toast");
+    element.textContent = message;
+    element.className = `toast show ${type}`;
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+        element.className = "toast";
+    }, 3000);
+}
+
+function awardPoints(key, amount, description) {
+    if (state.ledger[key]) return false;
+
+    state.ledger[key] = { amount, description };
+
+    state.points = Object.values(state.ledger)
+        .reduce((sum, entry) => sum + entry.amount, 0);
+
+    state.points = Math.min(380, state.points);
+
+    saveState();
+    updateRank();
+
+    return true;
+}
+
+function rankIndex() {
+    let result = 0;
+
+    RANKS.forEach((rank, index) => {
+        if (state.points >= rank.threshold) result = index;
+    });
+
+    return result;
+}
+
+function updateRank() {
+    const index = rankIndex();
+    const rank = RANKS[index];
+    const next = RANKS[index + 1];
+
+    $("#rankLevel").textContent =
+        `LEVEL ${String(index + 1).padStart(2, "0")}`;
+
+    $("#rankName").textContent = rank.name;
+    $("#investigationPoints").textContent = state.points;
+
+    if (next) {
+        const percentage =
+            ((state.points - rank.threshold) /
+            (next.threshold - rank.threshold)) * 100;
+
+        $("#rankProgressFill").style.width =
+            `${Math.max(0, Math.min(100, percentage))}%`;
+
+        $("#rankNext").textContent =
+            `Next rank: ${next.name} · ${next.threshold} IP`;
+    } else {
+        $("#rankProgressFill").style.width = "100%";
+        $("#rankNext").textContent = "Maximum rank achieved · 380 IP";
+    }
+
+    $$("#rankList li").forEach(item => {
+        const itemIndex = Number(item.dataset.rank);
+
+        item.classList.toggle("current", itemIndex === index);
+        item.classList.toggle("achieved", itemIndex < index);
+    });
+}
+
+function unlockAchievement(id) {
+    if (state.achievements.includes(id)) return;
+
+    state.achievements.push(id);
+
+    const achievement = ACHIEVEMENTS.find(item => item.id === id);
+
+    if (achievement) {
+        toast(`Achievement unlocked: ${achievement.name}`, "success");
+    }
+
+    saveState();
+}
+
+function updateAchievements() {
+    const flags = ["sender", "domain", "urgency", "replyTo"];
+
+    if (flags.every(id => state.answers.mission2.includes(id))) {
+        unlockAchievement("eagleEye");
+    }
+
+    if (state.answers.mission3 === "suspicious") {
+        unlockAchievement("headerHunter");
+    }
+
+    if (state.inspectedLogs.length === 5) {
+        unlockAchievement("evidenceExpert");
+    }
+
+    const timeline = state.answers.mission4Timeline;
+
+    if (
+        timeline.length === 7 &&
+        TIMELINE_EVENTS.every((event, index) => timeline[index] === event.id)
+    ) {
+        unlockAchievement("timelineMaster");
+    }
+
+    const verdict = state.answers.finalVerdict;
+
+    if (
+        verdict.classification === "phishing" &&
+        verdict.action === "contain" &&
+        verdict.impact === "unknown"
+    ) {
+        unlockAchievement("incidentCommander");
+    }
+}
+
+function collectEvidence(id) {
+    if (!state.collectedEvidence.includes(id)) {
+        state.collectedEvidence.push(id);
+    }
+
+    saveState();
+    updateEvidenceCount();
+}
+
+function updateEvidenceCount() {
+    $("#evidenceCount").textContent = state.collectedEvidence.length;
+}
+
+function completeMission(index) {
+    if (!state.completedMissions.includes(index)) {
+        state.completedMissions.push(index);
+    }
+
+    const next = index + 1;
+
+    if (next < 5 && !state.unlockedMissions.includes(next)) {
+        state.unlockedMissions.push(next);
+    }
+
+    state.unlockedMissions.sort((a, b) => a - b);
+
+    saveState();
+    updateProgress();
+    updateNavigation();
+}
+
+function updateProgress() {
+    const count = state.completedMissions.length;
+
+    $("#progressCount").textContent = `${count} / 5`;
+    $("#progressFill").style.width = `${count * 20}%`;
+
+    $("#progressMessage").textContent =
+        count === 5 ? "Investigation completed" :
+        `${5 - count} mission(s) remaining`;
+}
+
+function updateNavigation() {
+    $$("#missionNav [data-mission]").forEach(button => {
+        const index = Number(button.dataset.mission);
+        const unlocked = state.unlockedMissions.includes(index);
+        const completed = state.completedMissions.includes(index);
+        const active = state.currentMission === index;
+
+        button.classList.toggle("active", active);
+        button.classList.toggle("completed", completed);
+        button.classList.toggle("locked", !unlocked);
+
+        button.querySelector(".mission-state").textContent =
+            completed ? "✓" : unlocked ? "●" : "○";
+    });
+}
+
+function showCompletion(title, description) {
+    $("#completionTitle").textContent = title;
+    $("#completionDescription").textContent = description;
+    $("#completionPoints").textContent =
+        `${state.points} / 380 INVESTIGATION POINTS`;
+
+    $("#completionEffect").classList.remove("hidden");
+
+    clearTimeout(completionTimer);
+
+    completionTimer = setTimeout(closeCompletion, 4000);
+}
+
+function closeCompletion() {
+    $("#completionEffect").classList.add("hidden");
+}
+
+/* =========================================================
+   NAVIGATION AND RENDERING
+========================================================= */
+
+function showWorkspace() {
+    $("#homeView").classList.add("hidden");
+    $("#workspaceView").classList.remove("hidden");
+
+    renderMission();
+    updateProgress();
+    updateNavigation();
+    updateRank();
+    updateEvidenceCount();
+}
+
+function showHome() {
+    $("#workspaceView").classList.add("hidden");
+    $("#homeView").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function goToMission(index) {
+    if (!state.unlockedMissions.includes(index)) {
+        toast("Complete the previous mission to unlock this mission.", "error");
+        return;
+    }
+
+    state.currentMission = index;
+    saveState();
+
+    renderMission();
+    updateNavigation();
+    updateProgress();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderMission() {
+    const index = state.currentMission;
+
+    $("#missionStatus").textContent =
+        state.completedMissions.includes(index)
+            ? "✓ COMPLETED"
+            : "● IN PROGRESS";
+
+    $("#missionStatus").classList.toggle(
+        "completed",
+        state.completedMissions.includes(index)
+    );
+
+    [
+        renderMissionOne,
+        renderMissionTwo,
+        renderMissionThree,
+        renderMissionFour,
+        renderMissionFive
+    ][index]();
+
+    renderFooter();
+}
+
+function renderFooter() {
+    const index = state.currentMission;
+    const complete = state.completedMissions.includes(index);
+
+    $("#missionFooter").innerHTML = `
+        <div class="footer-hint">
+            ${complete ? "✓ Mission completed" : "Complete the objective to advance"}
+        </div>
+
+        <div class="footer-right">
+            ${index === 4 && state.finalReport ? `
+                <button class="button button-ghost" data-action="print">
+                    Print report ↗
+                </button>
+            ` : ""}
+
+            ${index === 4 ? `
+                <button class="button button-ghost" data-action="locker">
+                    Evidence locker
+                </button>
+            ` : ""}
+
+            ${index < 4 ? `
+                <button class="button button-primary" data-action="next">
+                    ${complete ? "Continue investigation" : "Continue"} →
+                </button>
+            ` : ""}
+        </div>
+    `;
+}
+
+/* =========================================================
+   MISSION 1
+========================================================= */
+
+function renderMissionOne() {
+    const answer = state.answers.mission1;
+
+    $("#missionContent").innerHTML = `
+        <div class="mission-kicker">PHASE 01 · INITIAL ASSESSMENT</div>
+        <h1 class="mission-title">Would You Trust This Email?</h1>
+
+        <p class="mission-subtitle">
+            You are working in the Aurelia Global Security Operations Centre.
+            An employee has received a message requesting immediate account verification.
+            Your investigation begins here.
+        </p>
+
+        <div class="section-label">INCOMING MESSAGE</div>
+
+        <article class="email-window">
+            <div class="email-window-top">
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="email-window-title">EMPLOYEE MAILBOX / MESSAGE PREVIEW</span>
+            </div>
+
+            <div class="email-meta">
+                <div class="email-meta-row">
+                    <span>From</span>
+                    <strong>ITsupport@aureliaglobal-support.com</strong>
+                </div>
+                <div class="email-meta-row">
+                    <span>To</span>
+                    <strong>employee@aureliaglobal.coY</strong>
+                </div>
+                <div class="email-meta-row">
+                    <span>Subject</span>
+                    <strong>Immediate Action Required — Account Verification</strong>
+                </div>
+                <div class="email-meta-row">
+                    <span>Date</span>
+                    <strong>08 Nov 2026 · 07:42 UTC</strong>
+                </div>
+            </div>
+
+            <div class="email-body">
+                <h4>Immediate Action Required</h4>
+
+                Dear Employee,
+
+                <p>
+                    We detected an issue with your account access.
+                    Your account will be suspended unless you verify your credentials immediately.
+                </p>
+
+                <p>Please use the following verification link:</p>
+
+                <span class="fake-link">
+                    https://aureliaglobal-support.com/verify-account
+                </span>
+
+                <p>
+                    Failure to complete this process may result in restricted access
+                    to company services.
+                </p>
+
+                <div class="email-signature">
+                    Aurelia Global<br>IT Support Team
+                </div>
+            </div>
+        </article>
+
+        <div class="section-label">YOUR FIRST DECISION</div>
+        <p class="muted small">What would you do with this message?</p>
+
+        <div class="email-actions">
+            ${[
+                ["trust", "Trust it", "The message appears official."],
+                ["investigate", "Investigate first", "Examine the message before acting."],
+                ["suspicious", "Flag as suspicious", "Potential phishing attempt."]
+            ].map(([id, title, description]) => `
+                <button class="choice-button ${answer === id ? "selected" : ""}"
+                    data-action="mission1" data-value="${id}">
+                    <strong>${title}</strong>
+                    <small>${description}</small>
+                </button>
+            `).join("")}
+        </div>
+
+        <div id="mission1Feedback" class="mission-feedback">
+            ${answer ? missionOneFeedbackHTML(answer) : ""}
+        </div>
+    `;
+}
+
+function missionOneFeedbackHTML(answer) {
+    const data = {
+        suspicious: [
+            "Correct instinct.",
+            "The message contains multiple warning signs. Treat it as suspicious and investigate before interacting.",
+            "success"
+        ],
+        investigate: [
+            "A cautious approach.",
+            "Investigating first is safer than trusting the message. Examine its indicators before taking action.",
+            "success"
+        ],
+        trust: [
+            "The message is not trustworthy.",
+            "A professional appearance does not establish legitimacy. The domain, urgency, and credential request warrant investigation.",
+            "warning"
+        ]
+    }[answer];
+
+    return `
+        <div class="callout ${data[2]}">
+            <strong>${data[0]}</strong><br>${data[1]}
+            <br><br><span class="tag">+${state.ledger.mission1?.amount || 0} IP</span>
+        </div>
+    `;
+}
+
+function answerMissionOne(answer) {
+    if (state.completedMissions.includes(0)) {
+        toast("This mission has already been completed.", "success");
+        return;
+    }
+
+    state.answers.mission1 = answer;
+
+    const points = {
+        suspicious: 50,
+        investigate: 40,
+        trust: 15
+    }[answer];
+
+    awardPoints("mission1", points, "Initial email assessment");
+    collectEvidence("email");
+    completeMission(0);
+
+    renderMissionOne();
+    renderFooter();
+
+    showCompletion("Initial assessment recorded", "Your first decision has been saved.");
+}
+
+/* =========================================================
+   MISSION 2
+========================================================= */
+
+const RED_FLAGS = [
+    ["sender", "Lookalike sender domain", "The sender uses aureliaglobal-support.com instead of the established company domain."],
+    ["domain", "Recipient domain anomaly", "The recipient address ends in coY rather than the expected company domain."],
+    ["urgency", "Urgency and account suspension", "The message pressures the employee to act immediately or lose account access."],
+    ["replyTo", "Mismatched Reply-To address", "Replies are directed to mail-relay.net rather than the company's domain."],
+    ["branding", "Professional-looking signature", "A corporate signature alone does not establish legitimacy."],
+    ["format", "Plain-text formatting", "Simple formatting alone is not evidence of malicious intent."]
+];
+
+function renderMissionTwo() {
+    const selected = state.answers.mission2;
+
+    $("#missionContent").innerHTML = `
+        <div class="mission-kicker">PHASE 02 · THREAT INDICATORS</div>
+        <h1 class="mission-title">Identify the Red Flags.</h1>
+
+        <p class="mission-subtitle">
+            Inspect the email carefully. Select the four indicators
+            that provide the strongest evidence of a phishing attempt.
+            Not every unusual detail is necessarily malicious.
+        </p>
+
+        <div class="callout warning">
+            <strong>Analyst instruction</strong><br>
+            Select exactly four indicators. You may change your selections before submitting.
+        </div>
+
+        <div class="section-label">EMAIL INDICATORS</div>
+
+        <div class="hotspot-grid">
+            ${RED_FLAGS.map(([id,title,description], index) => `
+                <button class="hotspot ${selected.includes(id) ? "selected" : ""}"
+                    data-action="hotspot" data-value="${id}">
+                    <div class="hotspot-top">
+                        <span class="hotspot-number">INDICATOR ${String(index + 1).padStart(2,"0")}</span>
+                        <span class="hotspot-check">${selected.includes(id) ? "✓" : ""}</span>
+                    </div>
+                    <strong>${title}</strong>
+                    <p>${description}</p>
+                </button>
+            `).join("")}
+        </div>
+
+        <div class="section-label">SELECTION</div>
+        <p class="muted small">${selected.length} / 4 indicators selected</p>
+
+        <button class="button button-primary" data-action="submitHotspots"
+            ${state.completedMissions.includes(1) ? "disabled" : ""}>
+            Submit indicators →
+        </button>
+
+        <div class="mission-feedback">
+            ${state.completedMissions.includes(1) ? missionTwoFeedbackHTML() : ""}
+        </div>
+    `;
+}
+
+function toggleHotspot(id) {
+    if (state.completedMissions.includes(1)) return;
+
+    const selected = [...state.answers.mission2];
+
+    if (selected.includes(id)) {
+        state.answers.mission2 = selected.filter(item => item !== id);
+    } else {
+        if (selected.length >= 4) {
+            toast("Select no more than four indicators.", "error");
+            return;
+        }
+
+        selected.push(id);
+        state.answers.mission2 = selected;
+    }
+
+    saveState();
+    renderMissionTwo();
+}
+
+function submitHotspots() {
+    if (state.completedMissions.includes(1)) return;
+
+    const selected = state.answers.mission2;
+
+    if (selected.length !== 4) {
+        toast("Select exactly four indicators.", "error");
+        return;
+    }
+
+    const correct = ["sender", "domain", "urgency", "replyTo"];
+    const correctCount = selected.filter(id => correct.includes(id)).length;
+
+    awardPoints("mission2", correctCount * 20, "Red flag identification");
+
+    collectEvidence("email");
+    completeMission(1);
+    updateAchievements();
+
+    renderMissionTwo();
+    renderFooter();
+
+    showCompletion(
+        "Threat indicators recorded",
+        `${correctCount} out of 4 indicators were correctly identified.`
+    );
+}
+
+function missionTwoFeedbackHTML() {
+    const correct = ["sender", "domain", "urgency", "replyTo"];
+    const count = state.answers.mission2.filter(id => correct.includes(id)).length;
+
+    return `
+        <div class="callout ${count === 4 ? "success" : "warning"}">
+            <strong>${count === 4 ? "Excellent analysis." : "Analysis recorded."}</strong><br>
+            You identified ${count} of the four strongest indicators.
+            The signature and formatting are not sufficient evidence of phishing.
+            <br><br><span class="tag">+${state.ledger.mission2?.amount || 0} IP</span>
+        </div>
+    `;
+}
+
+/* =========================================================
+   MISSION 3
+========================================================= */
+
+function renderMissionThree() {
+    const answer = state.answers.mission3;
+
+    $("#missionContent").innerHTML = `
+        <div class="mission-kicker">PHASE 03 · TECHNICAL ANALYSIS</div>
+        <h1 class="mission-title">Investigate the Email.</h1>
+
+        <p class="mission-subtitle">
+            A suspicious email can pass some authentication checks and still be malicious.
+            Examine the technical indicators and decide what the evidence actually proves.
+        </p>
+
+        <div class="section-label">EMAIL AUTHENTICATION</div>
+
+        <div class="analysis-grid">
+            <article class="analysis-card">
+                <h3>SPF</h3>
+                <span class="tag green">PASS</span>
+                <p>The sender is authorised by the domain's SPF record.</p>
+                <code>spf=pass</code>
+            </article>
+
+            <article class="analysis-card">
+                <h3>DKIM</h3>
+                <span class="tag green">PASS</span>
+                <p>The message signature validates for the signing domain.</p>
+                <code>d=aureliaglobal-support.com</code>
+            </article>
+
+            <article class="analysis-card">
+                <h3>DMARC</h3>
+                <span class="tag yellow">p=none</span>
+                <p>Monitoring policy. It does not request quarantine or rejection.</p>
+                <code>dmarc=pass · policy=none</code>
+            </article>
+
+            <article class="analysis-card">
+                <h3>Sender alignment</h3>
+                <span class="tag red">LOOKALIKE</span>
+                <p>The authenticated domain is not the established company domain.</p>
+                <code>aureliaglobal-support.com</code>
+            </article>
+        </div>
+
+        <div class="section-label">YOUR TECHNICAL CONCLUSION</div>
+
+        <div class="panel" style="padding:18px;">
+            <h3 style="font-size:13px;">
+                Does successful email authentication prove this message is legitimate?
+            </h3>
+
+            ${[
+                ["legitimate","Yes — SPF and DKIM passed.","Authentication proves the message is safe."],
+                ["suspicious","No — the message remains suspicious.","Authentication applies to a domain, not its trustworthiness."],
+                ["uncertain","The results are inconclusive.","More evidence is required to determine legitimacy."]
+            ].map(([id,title,description]) => `
+                <label class="analysis-option ${answer === id ? "selected" : ""}">
+                    <input type="radio" name="mission3" value="${id}"
+                        ${answer === id ? "checked" : ""}>
+                    <span><strong>${title}</strong><small>${description}</small></span>
+                </label>
+            `).join("")}
+
+            <button class="button button-primary" style="margin-top:18px;"
+                data-action="submitMission3"
+                ${state.completedMissions.includes(2) ? "disabled" : ""}>
+                Confirm analysis →
+            </button>
+
+            <div class="mission-feedback">
+                ${answer ? missionThreeFeedbackHTML(answer) : ""}
+            </div>
+        </div>
+    `;
+}
+
+function submitMissionThree() {
+    if (state.completedMissions.includes(2)) return;
+
+    const selected = $('input[name="mission3"]:checked');
+
+    if (!selected) {
+        toast("Select an analysis conclusion first.", "error");
+        return;
+    }
+
+    const answer = selected.value;
+    state.answers.mission3 = answer;
+
+    const points = answer === "suspicious" ? 75 :
+        answer === "uncertain" ? 35 : 10;
+
+    awardPoints("mission3", points, "Email authentication analysis");
+    collectEvidence("email");
+    completeMission(2);
+    updateAchievements();
+
+    renderMissionThree();
+    renderFooter();
+
+    showCompletion("Technical analysis recorded", "Your email authentication assessment is saved.");
+}
+
+function missionThreeFeedbackHTML(answer) {
+    const messages = {
+        suspicious: [
+            "Correct technical interpretation.",
+            "SPF and DKIM can authenticate a lookalike domain. They do not establish that the sender is the real company. DMARC p=none is a monitoring policy, not an enforcement policy.",
+            "success"
+        ],
+        legitimate: [
+            "Authentication is not trust.",
+            "SPF and DKIM passed for the lookalike domain. A malicious sender can authenticate its own domain. DMARC p=none does not enforce quarantine or rejection.",
+            "warning"
+        ],
+        uncertain: [
+            "Cautious, but stronger evidence exists.",
+            "The domain mismatch, Reply-To anomaly, credential request, and urgency strongly support treating the message as phishing.",
+            "warning"
+        ]
+    }[answer];
+
+    return `
+        <div class="callout ${messages[2]}" style="margin-top:15px;">
+            <strong>${messages[0]}</strong><br>${messages[1]}
+            <br><br><span class="tag">+${state.ledger.mission3?.amount || 0} IP</span>
+        </div>
+    `;
+}
+
+/* =========================================================
+   MISSION 4 — EVIDENCE AND TIMELINE
+========================================================= */
+
+function renderMissionFour() {
+    const answers = state.answers.mission4Timeline || [];
+
+    $("#missionContent").innerHTML = `
+        <div class="mission-kicker">PHASE 04 · DIGITAL FORENSICS</div>
+        <h1 class="mission-title">Examine the Evidence.</h1>
+
+        <p class="mission-subtitle">
+            The incident has escalated. Inspect the recovered records,
+            then reconstruct the sequence of events.
+            Use the evidence to determine what happened first, what followed,
+            and how the incident developed.
+        </p>
+
+        <div class="callout">
+            <strong>Analyst instruction</strong><br>
+            Inspect all five records before completing the timeline.
+            The timeline challenge does not display timestamps.
+            Use the forensic records to establish the correct sequence.
+        </div>
+
+        <div class="section-label">RECOVERED DIGITAL RECORDS</div>
+
+        <div class="log-list">
+            ${EVIDENCE.map(record => {
+                const inspected = state.inspectedLogs.includes(record.id);
+
+                return `
+                    <article class="log-item ${inspected ? "inspected" : ""}">
+                        <div class="log-icon">${inspected ? "✓" : "▣"}</div>
+                        <div>
+                            <h4>${record.title}</h4>
+                            <p>${record.source} · ${inspected ? "Inspected" : "Awaiting inspection"}</p>
+                        </div>
+                        <button data-action="inspect" data-value="${record.id}">
+                            ${inspected ? "View record" : "Inspect"}
+                        </button>
+                    </article>
+                `;
+            }).join("")}
+        </div>
+
+        <div class="section-label">RECONSTRUCT THE INCIDENT</div>
+
+        <p class="muted small">
+            Place the seven events in the order in which they occurred.
+            Each event can be used only once.
+        </p>
+
+        <div class="timeline-board">
+            ${Array.from({length:7}, (_,index) => `
+                <div class="timeline-slot">
+                    <span class="timeline-slot-number">${String(index+1).padStart(2,"0")}</span>
+                    <select data-timeline-slot="${index}"
+                        ${state.completedMissions.includes(3) ? "disabled" : ""}>
+                        <option value="">Choose the event for this position</option>
+                        ${TIMELINE_OPTION_ORDER.map(id => {
+                            const event = TIMELINE_EVENTS.find(item => item.id === id);
+                            return `
+                                <option value="${event.id}"
+                                    ${answers[index] === event.id ? "selected" : ""}>
+                                    ${escapeHTML(event.label)}
+                                </option>
+                            `;
+                        }).join("")}
+                    </select>
+                </div>
+            `).join("")}
+        </div>
+
+        <button class="button button-primary timeline-check"
+            data-action="submitTimeline"
+            ${state.completedMissions.includes(3) ? "disabled" : ""}>
+            Verify timeline →
+        </button>
+
+        <div class="mission-feedback">
+            ${state.completedMissions.includes(3) ? missionFourFeedbackHTML() : ""}
+        </div>
+    `;
+}
+
+function inspectEvidence(id) {
+    const record = EVIDENCE.find(item => item.id === id);
+    if (!record) return;
+
+    if (!state.inspectedLogs.includes(id)) {
+        state.inspectedLogs.push(id);
+        awardPoints(`log_${id}`, 10, `Inspected ${record.title}`);
+        collectEvidence(id);
+        updateAchievements();
+    }
+
+    $("#evidenceModalTitle").textContent = record.title;
+
+    $("#evidenceList").innerHTML = `
+        <article class="evidence-record">
+            <span class="tag cyan">${escapeHTML(record.source)}</span>
+            <p class="muted small">${escapeHTML(record.description)}</p>
+            <pre>${escapeHTML(record.content)}</pre>
+        </article>
+    `;
+
+    $("#evidenceModal").classList.remove("hidden");
+
+    renderMissionFour();
+}
+
+function submitTimeline() {
+    if (state.completedMissions.includes(3)) return;
+
+    if (state.inspectedLogs.length !== 5) {
+        toast("Inspect all five evidence records before submitting the timeline.", "error");
+        return;
+    }
+
+    const answers = Array.from({length:7}, (_,index) => {
+        const select = $(`[data-timeline-slot="${index}"]`);
+        return select ? select.value : "";
+    });
+
+    if (answers.some(value => !value)) {
+        toast("Complete all seven timeline positions.", "error");
+        return;
+    }
+
+    if (new Set(answers).size !== 7) {
+        toast("Each event must be used exactly once.", "error");
+        return;
+    }
+
+    state.answers.mission4Timeline = answers;
+
+    let correctCount = 0;
+
+    TIMELINE_EVENTS.forEach((event,index) => {
+        if (answers[index] === event.id) {
+            correctCount++;
+
+            const points = index === 6 ? 8 : 7;
+
+            awardPoints(
+                `timeline_slot_${index}`,
+                points,
+                `Correct event placement ${index + 1}`
+            );
+        }
+    });
+
+    saveState();
+
+    if (correctCount === 7) {
+        completeMission(3);
+        updateAchievements();
+
+        showCompletion(
+            "Evidence analysis complete",
+            "All evidence inspected. Timeline correctly reconstructed."
+        );
+    } else {
+        toast(
+            `${correctCount} out of 7 positions are correct. Review your evidence and try again.`,
+            "error"
+        );
+    }
+
+    renderMissionFour();
+    renderFooter();
+}
+
+function missionFourFeedbackHTML() {
+    return `
+        <div class="callout success">
+            <strong>Timeline verified.</strong><br>
+            All five evidence records were inspected and all seven events
+            were placed in the correct sequence.
+            <br><br><span class="tag">100 IP maximum for this mission</span>
+        </div>
+    `;
+}
+
+/* =========================================================
+   MISSION 5 — FINAL VERDICT
+========================================================= */
+
+function renderMissionFive() {
+    const answers = state.answers.finalVerdict;
+
+    $("#missionContent").innerHTML = `
+        <div class="mission-kicker">PHASE 05 · INCIDENT CONCLUSION</div>
+        <h1 class="mission-title">What Really Happened?</h1>
+
+        <p class="mission-subtitle">
+            You have reviewed the message, analysed its technical indicators,
+            and correlated the available records. Now submit your incident verdict.
+        </p>
+
+        <div class="callout warning">
+            <strong>Evidence summary</strong><br>
+            Credentials were submitted. An unfamiliar login followed.
+            The account then accessed finance files.
+            The employee subsequently contacted IT.
+        </div>
+
+        <div class="section-label">FINAL INVESTIGATOR VERDICT</div>
+
+        ${FINAL_QUESTIONS.map(question => `
+            <section class="verdict-question">
+                <h3>${question.title}</h3>
+                <div class="verdict-options">
+                    ${question.options.map(([value,label]) => `
+                        <label class="verdict-option ${answers[question.id] === value ? "selected" : ""}">
+                            <input type="radio" name="${question.id}" value="${value}"
+                                ${answers[question.id] === value ? "checked" : ""}
+                                ${state.finalReport ? "disabled" : ""}>
+                            <span>${label}</span>
+                        </label>
+                    `).join("")}
+                </div>
+            </section>
+        `).join("")}
+
+        <button class="button button-primary" data-action="submitFinal"
+            ${state.finalReport ? "disabled" : ""}>
+            Submit final verdict →
+        </button>
+
+        <div id="finalVerdictFeedback">
+            ${state.finalReport ? finalReportHTML() : ""}
+        </div>
+    `;
+}
+
+function submitFinalVerdict() {
+    if (state.finalReport) return;
+
+    const answers = state.answers.finalVerdict;
+
+    if (!answers.classification || !answers.action || !answers.impact) {
+        toast("Answer all three questions before submitting.", "error");
+        return;
+    }
+
+    const correct = {
+        classification: "phishing",
+        action: "contain",
+        impact: "unknown"
+    };
+
+    const correctCount = Object.keys(correct).filter(key =>
+        answers[key] === correct[key]
+    ).length;
+
+    awardPoints("mission5", correctCount * 25, "Final incident verdict");
+
+    state.answers.finalScore = correctCount;
+    state.finalReport = true;
+
+    completeMission(4);
+    updateAchievements();
+    saveState();
+
+    renderMissionFive();
+    renderFooter();
+
+    showCompletion(
+        "Final verdict submitted",
+        `${correctCount} out of 3 answers correct. Your report is ready.`
+    );
+}
+
+function finalReportHTML() {
+    const answers = state.answers.finalVerdict;
+    const score = state.answers.finalScore || 0;
+
+    const verdictLabels = {
+        phishing: "Credential-harvesting phishing followed by suspected account compromise",
+        malware: "Confirmed malware infection",
+        insider: "Confirmed insider threat"
+    };
+
+    const actionLabels = {
+        contain: "Contain account, revoke sessions, reset credentials, and investigate scope",
+        ignore: "Ignore the authentication anomaly",
+        delete: "Delete the email and close the incident"
+    };
+
+    const impactLabels = {
+        unknown: "Sensitive files were accessed; confirmed exfiltration and total impact remain unknown",
+        confirmed: "All finance data was definitely exfiltrated",
+        none: "No sensitive data was accessed"
+    };
+
+    return `
+        <article class="report-panel">
+            <div class="report-header">
+                <div>
+                    <div class="mission-kicker">AURELIA GLOBAL · INCIDENT RESPONSE</div>
+                    <h3>Investigation Report</h3>
+                    <p class="muted small">Operation Blackout · Case AG-0811</p>
+                </div>
+                <span class="tag green">SUBMITTED</span>
+            </div>
+
+            <table class="report-table">
+                <tr><td>Investigator rank</td><td><strong>${RANKS[rankIndex()].name}</strong></td></tr>
+                <tr><td>Investigation Points</td><td><strong>${state.points} / 380 IP</strong></td></tr>
+                <tr><td>Missions completed</td><td>${state.completedMissions.length} / 5</td></tr>
+                <tr><td>Evidence collected</td><td>${state.collectedEvidence.length} / 5</td></tr>
+                <tr><td>Final verdict score</td><td>${score} / 3</td></tr>
+                <tr><td>Incident classification</td><td>${escapeHTML(verdictLabels[answers.classification])}</td></tr>
+                <tr><td>Recommended response</td><td>${escapeHTML(actionLabels[answers.action])}</td></tr>
+                <tr><td>Impact assessment</td><td>${escapeHTML(impactLabels[answers.impact])}</td></tr>
+            </table>
+
+            <div class="section-label">INVESTIGATION FINDINGS</div>
+
+            <div class="callout success">
+                The available evidence supports a credential-harvesting phishing
+                attempt followed by suspected account compromise.
+                An unfamiliar authentication event and finance file access
+                occurred after credential submission.
+            </div>
+
+            <div class="callout warning" style="margin-top:12px;">
+                The available logs do not establish the attacker's identity,
+                the full scope of compromise, or confirmed data exfiltration.
+                Further incident response is required.
+            </div>
+
+            <div class="section-label">ACHIEVEMENTS</div>
+
+            <div class="achievement-grid">
+                ${ACHIEVEMENTS.map(item => {
+                    const unlocked = state.achievements.includes(item.id);
+
+                    return `
+                        <div class="achievement-card ${unlocked ? "unlocked" : ""}">
+                            <span class="achievement-icon">${item.icon}</span>
+                            <div>
+                                <strong>${item.name}</strong>
+                                <small>${item.description}</small>
+                                <small>${unlocked ? "UNLOCKED" : "LOCKED"}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+
+            <div class="section-label">RECOMMENDED RESPONSE</div>
+
+            <div class="callout">
+                Preserve evidence, isolate the affected account,
+                revoke active sessions, reset credentials, review access logs,
+                and assess whether sensitive data was exposed.
+            </div>
+        </article>
+    `;
+}
+
+/* =========================================================
+   EVIDENCE LOCKER
+========================================================= */
+
+function openEvidenceLocker() {
+    $("#evidenceModalTitle").textContent = "Evidence locker";
+
+    if (state.collectedEvidence.length === 0) {
+        $("#evidenceList").innerHTML = `
+            <div class="callout">
+                No evidence has been collected yet.
+                Progress through the missions to recover digital records.
+            </div>
+        `;
+    } else {
+        $("#evidenceList").innerHTML = state.collectedEvidence.map(id => {
+            const item = EVIDENCE.find(record => record.id === id);
+
+            if (!item) return "";
+
+            return `
+                <article class="evidence-record">
+                    <span class="tag cyan">${escapeHTML(item.source)}</span>
+                    <h3>${escapeHTML(item.title)}</h3>
+                    <p class="muted small">${escapeHTML(item.description)}</p>
+                    <pre>${escapeHTML(item.content)}</pre>
+                </article>
+            `;
+        }).join("");
+    }
+
+    $("#evidenceModal").classList.remove("hidden");
+}
+
+function closeEvidenceLocker() {
+    $("#evidenceModal").classList.add("hidden");
+}
+
+/* =========================================================
+   PRINT REPORT
+========================================================= */
+
+function printReport() {
+    if (!state.finalReport) {
+        toast("Submit your final verdict before printing.", "error");
+        return;
+    }
+
+    window.print();
+}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetInvestigation() {
+    const confirmed = window.confirm(
+        "Reset Operation Blackout?\n\nThis will erase all missions, points, evidence, achievements, and saved progress."
+    );
+
+    if (!confirmed) return;
+
+    localStorage.removeItem(STORAGE_KEY);
+    state = defaultState();
+
+    closeEvidenceLocker();
+    closeCompletion();
+    showHome();
+
+    updateRank();
+    updateProgress();
+    updateNavigation();
+    updateEvidenceCount();
+
+    toast("Investigation reset. A new case is ready.");
+}
+
+/* =========================================================
+   EVENT HANDLING
+   One delegated click handler keeps all dynamic buttons working.
+========================================================= */
+
+document.addEventListener("click", event => {
+    const button = event.target.closest("[data-action]");
+
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const value = button.dataset.value;
+
+    switch (action) {
+        case "mission1":
+            answerMissionOne(value);
+            break;
+
+        case "hotspot":
+            toggleHotspot(value);
+            break;
+
+        case "submitHotspots":
+            submitHotspots();
+            break;
+
+        case "submitMission3":
+            submitMissionThree();
+            break;
+
+        case "inspect":
+            inspectEvidence(value);
+            break;
+
+        case "submitTimeline":
+            submitTimeline();
+            break;
+
+        case "submitFinal":
+            submitFinalVerdict();
+            break;
+
+        case "next":
+            goToMission(Math.min(state.currentMission + 1, 4));
+            break;
+
+        case "locker":
+            openEvidenceLocker();
+            break;
+
+        case "print":
+            printReport();
+            break;
+    }
+});
+
+/* Mission 3 selection styling */
+
+document.addEventListener("change", event => {
+    if (event.target.name === "mission3") {
+        $$(".analysis-option").forEach(label => {
+            label.classList.toggle(
+                "selected",
+                label.querySelector("input").checked
+            );
+        });
+    }
+
+    /* Mission 4 timeline selections are saved immediately. */
+
+    if (event.target.matches("[data-timeline-slot]")) {
+        const index = Number(event.target.dataset.timelineSlot);
+
+        state.answers.mission4Timeline[index] = event.target.value;
+        saveState();
+    }
+
+    /* Mission 5 answers are saved as soon as selected. */
+
+    const verdictInput = event.target.closest(".verdict-option input");
+
+    if (verdictInput) {
+        state.answers.finalVerdict[verdictInput.name] = verdictInput.value;
+
+        saveState();
+
+        $$(".verdict-option").forEach(label => {
+            const input = label.querySelector("input");
+            label.classList.toggle("selected", input.checked);
+        });
+    }
+});
+
+/* Static navigation */
+
+$("#startInvestigation").addEventListener("click", showWorkspace);
+$("#brandHome").addEventListener("click", showHome);
+$("#backHome").addEventListener("click", showHome);
+$("#resetProgress").addEventListener("click", resetInvestigation);
+$("#evidenceLocker").addEventListener("click", openEvidenceLocker);
+$("#closeEvidence").addEventListener("click", closeEvidenceLocker);
+$("#closeCompletion").addEventListener("click", closeCompletion);
+
+$("#evidenceModal").addEventListener("click", event => {
+    if (event.target.id === "evidenceModal") closeEvidenceLocker();
+});
+
+$("#completionEffect").addEventListener("click", event => {
+    if (event.target.id === "completionEffect") closeCompletion();
+});
+
+$("#missionNav").addEventListener("click", event => {
+    const button = event.target.closest("[data-mission]");
+
+    if (!button) return;
+
+    goToMission(Number(button.dataset.mission));
+});
+
+$("#missionFooter").addEventListener("click", event => {
+    if (event.target.closest('[data-action="next"]')) {
+        goToMission(Math.min(state.currentMission + 1, 4));
+    }
+
+    if (event.target.closest('[data-action="locker"]')) {
+        openEvidenceLocker();
+    }
+
+    if (event.target.closest('[data-action="print"]')) {
+        printReport();
+    }
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeEvidenceLocker();
+        closeCompletion();
+    }
+});
+
+/* =========================================================
+   INITIALISE
+========================================================= */
+
+function initialise() {
+    updateRank();
+    updateProgress();
+    updateNavigation();
+    updateEvidenceCount();
+
+    if (state.finalReport) {
+        state.currentMission = 4;
+    }
+
+    saveState();
+}
+
+initialise();
+
+</script>
 </body>
 </html>
