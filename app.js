@@ -3,172 +3,139 @@
    DIGITAL DETECTIVE
    OPERATION BLACKOUT — CASE FILE 001
    AURELIA GLOBAL
-
-   All evidence is fictional and simulated.
-   Progress is stored locally in the participant's browser.
-   ========================================================= */
-
-
-/* =========================================================
-   1. APPLICATION STATE
    ========================================================= */
 
 const STORAGE_KEY = "digitalDetectiveOperationBlackout";
+const VERSION = 2;
 
-const defaultState = {
+const DEFAULT_STATE = {
+    version: VERSION,
     currentMission: 0,
     completedMissions: [],
     unlockedMissions: [0],
     collectedEvidence: [],
     answers: {},
+    points: 0,
+    activityPoints: {},
+    hintUsed: [],
+    achievements: [],
     finalReport: false
 };
 
+const SCORE = {
+    mission1: 50,
+    mission2: 80,
+    mission3: 75,
+    mission4: 100,
+    mission5: 75
+};
+
+const RANKS = [
+    { name: "Trainee Analyst", min: 0 },
+    { name: "Threat Spotter", min: 80 },
+    { name: "Security Investigator", min: 160 },
+    { name: "Cyber Detective", min: 240 },
+    { name: "Elite Incident Responder", min: 320 }
+];
+
+const ACHIEVEMENTS = {
+    eagleEye: {
+        title: "Eagle Eye",
+        description: "Identify all four phishing indicators.",
+        icon: "◉"
+    },
+    headerHunter: {
+        title: "Header Hunter",
+        description: "Correctly interpret SPF, DKIM and DMARC.",
+        icon: "⌘"
+    },
+    evidenceExpert: {
+        title: "Evidence Expert",
+        description: "Inspect every forensic evidence record.",
+        icon: "▤"
+    },
+    timelineMaster: {
+        title: "Timeline Master",
+        description: "Reconstruct the incident chronology accurately.",
+        icon: "◷"
+    },
+    incidentCommander: {
+        title: "Incident Commander",
+        description: "Answer all three final verdict questions correctly.",
+        icon: "◆"
+    }
+};
+
+const MISSION_HINTS = {
+    0: "Unexpected credential requests should never be trusted solely because they appear to come from IT. Verify through an independent channel.",
+    1: "Compare the sender domain with the legitimate domain. Look for pressure, credential requests and mismatched destinations.",
+    2: "SPF and DKIM authenticate a sending domain. They do not prove that the domain belongs to the legitimate organisation.",
+    3: "Separate delivery from opening, opening from visiting, and credential submission from subsequent authentication.",
+    4: "Distinguish confirmed evidence from suspicion. Containment is the priority when compromise is suspected."
+};
+
 let state = loadState();
-
-let currentMission = 0;
-
+let currentMission = state.currentMission;
 let selectedHotspots = [];
 let selectedLogs = [];
 let timelineAnswers = [];
 let selectedFinalAnswers = {};
-
 let toastTimeout;
 
-
 /* =========================================================
-   2. EVIDENCE DATABASE
-   ========================================================= */
-
-const evidenceDatabase = {
-
-    email: {
-        title: "Email delivery record",
-        description:
-            "A suspicious external message reached the employee's mailbox at 09:05. The evidence record lists its subject as Urgent: payroll update."
-    },
-
-    browser: {
-        title: "Browser activity record",
-        description:
-            "Browser activity indicates that the employee opened the suspicious link at 09:14. The page imitated the company's login interface."
-    },
-
-    credentials: {
-        title: "Credential submission record",
-        description:
-            "At 09:16, credentials were submitted through the external page. No second-factor challenge was recorded in this simulated evidence."
-    },
-
-    authentication: {
-        title: "Authentication log",
-        description:
-            "At 09:24, a successful login was recorded from unfamiliar IP 203.0.113.47 using a new device outside the employee's usual hours."
-    },
-
-    files: {
-        title: "File access record",
-        description:
-            "At 09:27, the new session listed a shared finance folder and opened one file. The exact extent of access remains to be verified."
-    },
-
-    metadata: {
-        title: "Email metadata",
-        description:
-            "The message includes a separate Reply-To address, an unknown relay, a lookalike sender domain and bulk-sender metadata."
-    },
-
-    authenticationDetails: {
-        title: "Email authentication results",
-        description:
-            "SPF passed for the sending domain, DKIM passed for that domain, and DMARC was set to p=none. These results do not establish that the message was trustworthy."
-    }
-
-};
-
-
-/* =========================================================
-   3. SAVE AND LOAD PROGRESS
+   STATE / STORAGE
    ========================================================= */
 
 function loadState() {
-
     try {
-
         const saved = localStorage.getItem(STORAGE_KEY);
 
-        if (!saved) {
-            return structuredClone(defaultState);
-        }
+        if (!saved) return structuredClone(DEFAULT_STATE);
 
         const parsed = JSON.parse(saved);
 
         return {
-            ...structuredClone(defaultState),
-            ...parsed
+            ...structuredClone(DEFAULT_STATE),
+            ...parsed,
+            answers: parsed.answers || {},
+            activityPoints: parsed.activityPoints || {},
+            collectedEvidence: parsed.collectedEvidence || [],
+            completedMissions: parsed.completedMissions || [],
+            unlockedMissions: parsed.unlockedMissions || [0],
+            achievements: parsed.achievements || [],
+            hintUsed: parsed.hintUsed || []
         };
-
     } catch (error) {
-
-        console.warn("Could not load saved progress.", error);
-
-        return structuredClone(defaultState);
-
+        console.warn("Progress could not be loaded.", error);
+        return structuredClone(DEFAULT_STATE);
     }
-
 }
-
 
 function saveState() {
-
     try {
-
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(state)
-        );
-
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
-
-        console.warn("Could not save progress.", error);
-
+        console.warn("Progress could not be saved.", error);
+        showToast("Browser storage unavailable. Progress may not persist.");
     }
-
 }
-
-
-/* =========================================================
-   4. GENERAL UTILITIES
-   ========================================================= */
 
 function $(selector) {
     return document.querySelector(selector);
 }
 
-
 function escapeHTML(value) {
-
-    return String(value).replace(/[&<>"']/g, character => {
-
-        const replacements = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;"
-        };
-
-        return replacements[character];
-
-    });
-
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[character]);
 }
 
-
 function showToast(message) {
-
     const toast = $("#toast");
-
     if (!toast) return;
 
     toast.textContent = message;
@@ -177,284 +144,296 @@ function showToast(message) {
     clearTimeout(toastTimeout);
 
     toastTimeout = setTimeout(() => {
-
         toast.classList.remove("show");
-
-    }, 2800);
-
+    }, 3000);
 }
 
+function currentPoints() {
+    return Math.max(0, Math.min(380, state.points || 0));
+}
+
+function getRank() {
+    const points = currentPoints();
+    return [...RANKS].reverse().find(rank => points >= rank.min);
+}
+
+function awardPoints(activity, amount) {
+    if (state.activityPoints[activity] !== undefined) return;
+
+    const penalty = state.hintUsed.includes(activity.split(":")[0])
+        ? 10
+        : 0;
+
+    const earned = Math.max(0, amount - penalty);
+
+    state.activityPoints[activity] = earned;
+    state.points = currentPoints() + earned;
+
+    saveState();
+    updateProgress();
+
+    showToast(`+${earned} Investigation Points`);
+}
+
+function unlockAchievement(id) {
+    if (!ACHIEVEMENTS[id]) return;
+    if (state.achievements.includes(id)) return;
+
+    state.achievements.push(id);
+    saveState();
+    renderAchievements();
+    showToast(`Achievement unlocked: ${ACHIEVEMENTS[id].title}`);
+}
 
 function markEvidenceCollected(id) {
+    if (state.collectedEvidence.includes(id)) return;
 
-    if (!state.collectedEvidence.includes(id)) {
-
-        state.collectedEvidence.push(id);
-
-        saveState();
-        updateProgress();
-
-        showToast("Evidence added to your investigation locker.");
-
-    }
-
+    state.collectedEvidence.push(id);
+    saveState();
+    updateProgress();
+    showToast("Evidence added to your investigation locker.");
 }
-
 
 function isMissionComplete(index) {
-
     return state.completedMissions.includes(index);
-
 }
 
-
 function completeMission(index) {
-
     if (!state.completedMissions.includes(index)) {
-
         state.completedMissions.push(index);
-
     }
 
     if (index < 4 && !state.unlockedMissions.includes(index + 1)) {
-
         state.unlockedMissions.push(index + 1);
-
     }
 
     state.currentMission = Math.min(index + 1, 4);
 
     saveState();
     updateProgress();
-
+    missionCompletionEffect();
 }
 
+function missionCompletionEffect() {
+    const content = $("#missionContent");
+    if (!content) return;
+
+    content.classList.remove("mission-complete-animation");
+    void content.offsetWidth;
+    content.classList.add("mission-complete-animation");
+}
+
+function useHint(mission) {
+    const key = String(mission);
+
+    if (state.hintUsed.includes(key)) {
+        showToast("Hint penalty already applied for this mission.");
+        return;
+    }
+
+    state.hintUsed.push(key);
+    state.points = Math.max(0, currentPoints() - 10);
+
+    saveState();
+    updateProgress();
+
+    const area = $(`#mission${mission + 1}Hint`);
+    if (area) {
+        area.innerHTML = `
+            <div class="feedback warning">
+                <strong>Investigator hint · −10 IP</strong>
+                <p>${escapeHTML(MISSION_HINTS[mission])}</p>
+            </div>`;
+    }
+
+    showToast("Hint unlocked · 10 IP deducted.");
+}
+
+function resetTemporaryMissionState() {
+    selectedHotspots = [];
+    selectedLogs = [];
+    timelineAnswers = [];
+    selectedFinalAnswers = {};
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function showHome() {
+    $("#homeView")?.classList.remove("hidden");
+    $("#workspaceView")?.classList.add("hidden");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showWorkspace() {
+    $("#homeView")?.classList.add("hidden");
+    $("#workspaceView")?.classList.remove("hidden");
+
+    currentMission = state.currentMission;
+    restoreTemporaryState();
+
+    renderMission();
+    updateProgress();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function restoreTemporaryState() {
+    selectedHotspots = state.answers.mission2Clues || [];
+    selectedLogs = state.answers.mission4Logs || [];
+    timelineAnswers = state.answers.timeline || [];
+    selectedFinalAnswers = state.answers.finalVerdict || {};
+}
 
 function goToMission(index) {
-
     if (!state.unlockedMissions.includes(index)) {
-
         showToast("Complete the previous mission to unlock this file.");
-
         return;
-
     }
 
     currentMission = index;
     state.currentMission = index;
 
-    resetTemporaryMissionState();
-
+    restoreTemporaryState();
     saveState();
-
     renderMission();
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-
-function resetTemporaryMissionState() {
-
-    selectedHotspots = [];
-    selectedLogs = [];
-    timelineAnswers = [];
-    selectedFinalAnswers = {};
-
-}
-
 
 /* =========================================================
-   5. LANDING PAGE AND NAVIGATION
-   ========================================================= */
-
-function showHome() {
-
-    $("#homeView").classList.remove("hidden");
-    $("#workspaceView").classList.add("hidden");
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-function showWorkspace() {
-
-    $("#homeView").classList.add("hidden");
-    $("#workspaceView").classList.remove("hidden");
-
-    currentMission = state.currentMission;
-
-    renderMission();
-    updateProgress();
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-/* =========================================================
-   6. PROGRESS AND SIDEBAR
+   SIDEBAR / PROGRESS / ACHIEVEMENTS
    ========================================================= */
 
 function updateProgress() {
-
     const completed = state.completedMissions.length;
 
-    $("#progressCount").textContent = `${completed} / 5`;
+    if ($("#progressCount")) {
+        $("#progressCount").textContent = `${completed} / 5`;
+    }
 
-    $("#progressFill").style.width = `${completed * 20}%`;
+    if ($("#progressFill")) {
+        $("#progressFill").style.width = `${completed * 20}%`;
+    }
 
-    $("#evidenceCount").textContent =
-        state.collectedEvidence.length;
+    if ($("#evidenceCount")) {
+        $("#evidenceCount").textContent = state.collectedEvidence.length;
+    }
+
+    if ($("#investigationPoints")) {
+        $("#investigationPoints").textContent = currentPoints();
+    }
+
+    if ($("#analystRank")) {
+        $("#analystRank").textContent = getRank().name;
+    }
+
+    if ($("#achievementCount")) {
+        $("#achievementCount").textContent =
+            `${state.achievements.length} / ${Object.keys(ACHIEVEMENTS).length}`;
+    }
 
     document.querySelectorAll(".mission-nav-item").forEach(button => {
-
         const index = Number(button.dataset.mission);
-
         const unlocked = state.unlockedMissions.includes(index);
         const completedMission = isMissionComplete(index);
 
         button.disabled = !unlocked;
-
         button.classList.toggle("locked", !unlocked);
         button.classList.toggle("active", currentMission === index);
         button.classList.toggle("completed", completedMission);
 
         const status = button.querySelector(".mission-state");
 
-        if (completedMission) {
-
-            status.textContent = "✓";
-
-        } else if (unlocked) {
-
-            status.textContent = currentMission === index ? "●" : "○";
-
-        } else {
-
-            status.textContent = "⌑";
-
+        if (status) {
+            status.textContent = completedMission ? "✓" : unlocked
+                ? currentMission === index ? "●" : "○"
+                : "⌑";
         }
-
     });
 
+    renderAchievements();
 }
 
+function renderAchievements() {
+    const container = $("#achievementDisplay");
+    if (!container) return;
+
+    container.innerHTML = Object.entries(ACHIEVEMENTS).map(([id, item]) => {
+        const unlocked = state.achievements.includes(id);
+
+        return `
+            <div class="achievement-item ${unlocked ? "unlocked" : "locked"}"
+                 title="${escapeHTML(item.description)}">
+                <span class="achievement-icon">${item.icon}</span>
+                <span class="achievement-name">${escapeHTML(item.title)}</span>
+                <span class="achievement-status">${unlocked ? "UNLOCKED" : "LOCKED"}</span>
+            </div>`;
+    }).join("");
+}
 
 /* =========================================================
-   7. SHARED HTML COMPONENTS
+   SHARED COMPONENTS
    ========================================================= */
 
 function sectionLabel(text) {
-
-    return `
-        <div class="section-label">${text}</div>
-    `;
-
+    return `<div class="section-label">${text}</div>`;
 }
-
 
 function panel(title, content, tag = "") {
-
     return `
         <section class="panel">
-
             <div class="panel-heading">
-
                 <h3>${title}</h3>
-
                 ${tag ? `<span class="panel-tag">${tag}</span>` : ""}
-
             </div>
-
             ${content}
-
-        </section>
-    `;
-
+        </section>`;
 }
-
 
 function infoCard(title, description, badge = "") {
-
     return `
         <article class="info-card">
-
-            ${badge
-                ? `<span class="status-badge badge-info">${badge}</span>`
-                : ""
-            }
-
+            ${badge ? `<span class="status-badge badge-info">${badge}</span>` : ""}
             <h3 class="mt-10">${title}</h3>
-
             <p class="mt-10">${description}</p>
-
-        </article>
-    `;
-
+        </article>`;
 }
-
 
 function missionHeading(number, title, description, label) {
-
     return `
         ${sectionLabel(label)}
-
         <h1>${title}</h1>
-
         <p class="mb-15">${description}</p>
-
         <span class="status-badge badge-purple">
             MISSION ${String(number).padStart(2, "0")} / 05
-        </span>
-    `;
-
+        </span>`;
 }
-
-
-function actionButton(text, action, disabled = false) {
-
-    return `
-        <button
-            class="action-button"
-            data-action="${action}"
-            ${disabled ? "disabled" : ""}
-        >
-            ${text}
-        </button>
-    `;
-
-}
-
 
 function feedback(title, description, type = "success") {
-
     return `
         <div class="feedback ${type}">
             <strong>${title}</strong>
             <p>${description}</p>
-        </div>
-    `;
-
+        </div>`;
 }
 
+function hintButton(mission) {
+    return `
+        <button class="secondary-button hint-button"
+                data-action="hint" data-mission="${mission}">
+            REQUEST INVESTIGATOR HINT · −10 IP
+        </button>
+        <div id="mission${mission + 1}Hint" class="mt-15"></div>`;
+}
 
 /* =========================================================
-   8. RENDERING SYSTEM
+   RENDERER
    ========================================================= */
 
 function renderMission() {
-
     const renderers = [
         renderMissionOne,
         renderMissionTwo,
@@ -463,1607 +442,708 @@ function renderMission() {
         renderMissionFive
     ];
 
-    const missionNames = [
-        "Would You Trust This Email?",
-        "Identify the Red Flags",
-        "Investigate the Email",
-        "Examine the Evidence",
-        "What Really Happened?"
-    ];
-
-    const missionContent = $("#missionContent");
-
     $("#missionCrumb").textContent =
         `CASE FILE 001 / MISSION ${String(currentMission + 1).padStart(2, "0")}`;
 
-    missionContent.innerHTML = renderers[currentMission]();
+    $("#missionContent").innerHTML = renderers[currentMission]();
 
     renderMissionFooter();
-
     updateProgress();
-
 }
 
-
 function renderMissionFooter() {
-
     const footer = $("#missionFooter");
+    if (!footer) return;
 
     const complete = isMissionComplete(currentMission);
 
-    if (currentMission === 4) {
-
-        footer.innerHTML = `
-            <span class="footer-note">
-                CASE FILE 001 · FINAL INVESTIGATION
-            </span>
-
-            <div class="footer-actions">
-
-                <button
-                    class="secondary-button"
-                    data-action="open-evidence"
-                >
-                    VIEW EVIDENCE
-                </button>
-
-                <button
-                    class="action-button"
-                    data-action="print-report"
-                >
-                    PRINT FINAL REPORT
-                </button>
-
-            </div>
-        `;
-
-        return;
-
-    }
-
     footer.innerHTML = `
         <span class="footer-note">
-            ${complete
-                ? "MISSION COMPLETED · YOU MAY REVIEW THIS FILE"
-                : "COMPLETE THE INVESTIGATION TASK TO CONTINUE"
-            }
+            ${complete ? "MISSION COMPLETED · REVIEW THIS FILE" : "COMPLETE THE INVESTIGATION TASK TO CONTINUE"}
         </span>
-
         <div class="footer-actions">
-
-            <button
-                class="secondary-button"
-                data-action="open-evidence"
-            >
-                EVIDENCE LOCKER
-            </button>
-
-            ${complete
-                ? `<button class="action-button" data-action="next-mission">
-                    NEXT MISSION →
-                   </button>`
-                : ""
-            }
-
-        </div>
-    `;
-
+            <button class="secondary-button" data-action="open-evidence">EVIDENCE LOCKER</button>
+            ${currentMission === 4
+                ? `<button class="action-button" data-action="print-report">PRINT FINAL REPORT</button>`
+                : complete
+                    ? `<button class="action-button" data-action="next-mission">NEXT MISSION →</button>`
+                    : ""}
+        </div>`;
 }
 
-
 /* =========================================================
-   9. MISSION 1
-   WOULD YOU TRUST THIS EMAIL?
+   MISSION 1 — INITIAL ASSESSMENT
    ========================================================= */
 
 function renderMissionOne() {
-
-    const alreadyCompleted = isMissionComplete(0);
+    const answer = state.answers.mission1;
 
     return `
-
-        ${missionHeading(
-            1,
-            "Would You Trust This Email?",
-            "An urgent corporate alert has reached an Aurelia Global employee. Before examining its technical details, make your initial assessment.",
-            "FIELD BRIEFING · INITIAL ASSESSMENT"
-        )}
-
+        ${missionHeading(1, "Would You Trust This Email?",
+            "An urgent corporate alert has reached an Aurelia Global employee. Make your initial assessment.",
+            "FIELD BRIEFING · INITIAL ASSESSMENT")}
 
         <div class="two-column-layout mt-20">
-
             <div>
-
-                ${sectionLabel("EVIDENCE ACQUISITION · SIMULATED INBOX CAPTURE")}
-
+                ${sectionLabel("SIMULATED INBOX CAPTURE")}
                 <div class="email-window">
-
                     <div class="email-top">
                         <strong>✉ Corporate Mailbox</strong>
                         <span class="status-badge badge-warning">URGENT</span>
                     </div>
-
                     <div class="email-details">
-
-                        <div class="email-detail">
-                            <span>From:</span>
-                            <span>IT Support Helpdesk &lt;ITsupport@aureliaglobal-support.com&gt;</span>
-                        </div>
-
-                        <div class="email-detail">
-                            <span>To:</span>
-                            <span>employee@aureliaglobal.coY</span>
-                        </div>
-
-                        <div class="email-detail">
-                            <span>Subject:</span>
-                            <span>Immediate Action Required — Account Verification</span>
-                        </div>
-
-                        <div class="email-detail">
-                            <span>Security:</span>
-                            <span>TLS 1.3 encrypted · Hop count: 4 · Priority: High</span>
-                        </div>
-
+                        <div class="email-detail"><span>From:</span><span>ITsupport@aureliaglobal-support.com</span></div>
+                        <div class="email-detail"><span>To:</span><span>employee@aureliaglobal.coY</span></div>
+                        <div class="email-detail"><span>Subject:</span><span>Immediate Action Required — Account Verification</span></div>
+                        <div class="email-detail"><span>Security:</span><span>TLS 1.3 encrypted · Priority: High</span></div>
                     </div>
-
                     <div class="email-body">
-
-                        <p>
-                            Aurelia Global Single Sign-On (SSO) maintenance
-                            has detected unverified multi-factor credentials
-                            for your workstation.
-                        </p>
-
-                        <p>
-                            To maintain operational continuity, you must
-                            verify your profile within two hours.
-                        </p>
-
-                        <div class="email-warning">
-                            <strong>
-                                Failure to verify will result in immediate
-                                suspension of enterprise access and
-                                operational portal lockout.
-                            </strong>
-                        </div>
-
-                        <div class="email-verify">
-                            Verify Account Credentials Now
-                        </div>
-
-                        <p class="email-disclaimer">
-                            SIMULATED EMAIL · DO NOT OPEN EXTERNAL LINKS
-                        </p>
-
+                        <p>Aurelia Global SSO maintenance has detected unverified multi-factor credentials for your workstation.</p>
+                        <p>Verify your profile within two hours to maintain operational continuity.</p>
+                        <div class="email-warning"><strong>Failure to verify will result in immediate enterprise access suspension.</strong></div>
+                        <div class="email-verify">Verify Account Credentials Now</div>
+                        <p class="email-disclaimer">SIMULATED EMAIL · DO NOT OPEN EXTERNAL LINKS</p>
                     </div>
-
                 </div>
-
             </div>
-
 
             <div>
-
-                ${panel(
-                    "Field briefing",
-                    `
-                        <p>
-                            Consider the human and technical cues in this
-                            urgent corporate alert.
-                        </p>
-
-                        <div class="divider"></div>
-
-                        <h4 class="text-cyan">01 · Would you trust this email?</h4>
-                        <p class="mt-10">
-                            Compare the sender with normal IT practice.
-                        </p>
-
-                        <div class="divider"></div>
-
-                        <h4 class="text-cyan">02 · What would make you suspicious?</h4>
-                        <p class="mt-10">
-                            Consider tone, timing, domain and pressure.
-                        </p>
-
-                        <div class="divider"></div>
-
-                        <h4 class="text-cyan">03 · What would you investigate first?</h4>
-                        <p class="mt-10">
-                            Consider MX records, URL resolution or mailbox logs.
-                        </p>
-                    `,
-                    "INITIAL ASSESSMENT"
-                )}
+                ${panel("Field briefing", `
+                    <h4 class="text-cyan">01 · Would you trust this email?</h4>
+                    <p class="mt-10">Compare the sender with normal IT practice.</p>
+                    <div class="divider"></div>
+                    <h4 class="text-cyan">02 · What makes you suspicious?</h4>
+                    <p class="mt-10">Consider tone, domain and pressure.</p>
+                    <div class="divider"></div>
+                    <h4 class="text-cyan">03 · What would you investigate first?</h4>
+                    <p class="mt-10">Verify through an independent official channel.</p>
+                `, "INITIAL ASSESSMENT")}
 
                 <div class="panel mt-20">
-
                     <h3>Your initial judgement</h3>
-
-                    <p class="mt-10">
-                        Choose the action you would take before examining
-                        the technical evidence.
-                    </p>
-
+                    <p class="mt-10">Choose your first action.</p>
                     <div class="mt-20" style="display:grid;gap:10px;">
-
-                        <button class="option-button"
-                            data-action="mission1-answer"
-                            data-answer="trust">
-                            <span>01</span>
-                            Trust the email and verify immediately
-                        </button>
-
-                        <button class="option-button"
-                            data-action="mission1-answer"
-                            data-answer="suspicious">
-                            <span>02</span>
-                            Treat it as suspicious and report it
-                        </button>
-
-                        <button class="option-button"
-                            data-action="mission1-answer"
-                            data-answer="investigate">
-                            <span>03</span>
-                            Pause and investigate before deciding
-                        </button>
-
+                        ${[
+                            ["trust", "Trust the email and verify immediately"],
+                            ["suspicious", "Treat it as suspicious and report it"],
+                            ["investigate", "Pause and investigate before deciding"]
+                        ].map(([id, text]) => `
+                            <button class="option-button ${answer === id ? "selected" : ""}"
+                                    data-action="mission1-answer" data-answer="${id}">
+                                <span>${answer === id ? "✓" : "＋"}</span>${text}
+                            </button>`).join("")}
                     </div>
-
-                    <div id="mission1Feedback"></div>
-
+                    <div id="mission1Feedback" class="mt-20">
+                        ${answer ? missionOneFeedback(answer) : ""}
+                    </div>
                 </div>
-
             </div>
-
         </div>
-
-
-        ${alreadyCompleted
-            ? feedback(
-                "Mission completed",
-                "Your initial assessment has been recorded. You can revisit this mission at any time."
-            )
-            : ""
-        }
-
+        ${hintButton(0)}
     `;
-
 }
 
+function missionOneFeedback(answer) {
+    const messages = {
+        trust: ["That decision carries risk.", "Never enter credentials through an unexpected email link.", "warning"],
+        suspicious: ["Good security instinct.", "The sender domain and urgent credential request are suspicious. Report it through official channels.", "success"],
+        investigate: ["Strong investigative approach.", "Preserve the message and verify through official IT channels before taking action.", "success"]
+    };
+    const [title, text, type] = messages[answer];
+    return feedback(title, text, type);
+}
 
 function answerMissionOne(answer) {
-
-    const explanations = {
-
-        trust: {
-            title: "That decision carries risk.",
-            message:
-                "Do not enter credentials through an unexpected email link. An apparent IT request is not proof of legitimacy.",
-            type: "warning"
-        },
-
-        suspicious: {
-            title: "Good security instinct.",
-            message:
-                "The sender domain and urgent credential request are suspicious. Reporting is a safer initial response.",
-            type: "success"
-        },
-
-        investigate: {
-            title: "A cautious investigative approach.",
-            message:
-                "Preserve the message and verify it through official IT channels before taking action.",
-            type: "success"
-        }
-
-    };
-
-    const result = explanations[answer];
-
-    if (!result) return;
+    if (state.answers.mission1) {
+        showToast("Your initial assessment is already recorded.");
+        return;
+    }
 
     state.answers.mission1 = answer;
-
     markEvidenceCollected("email");
 
+    awardPoints("m1:assessment", answer === "investigate" ? 50 : answer === "suspicious" ? 35 : 0);
     completeMission(0);
 
-    $("#mission1Feedback").innerHTML =
-        feedback(result.title, result.message, result.type);
-
+    $("#mission1Feedback").innerHTML = missionOneFeedback(answer);
     renderMissionFooter();
-
     showToast("Mission 1 completed. Mission 2 unlocked.");
-
 }
 
-
 /* =========================================================
-   10. MISSION 2
-   IDENTIFY THE RED FLAGS
+   MISSION 2 — RED FLAGS
    ========================================================= */
 
+const redFlags = {
+    sender: "The sender domain does not match the legitimate corporate domain.",
+    urgency: "Pressure and threats encourage rushed decisions.",
+    credentials: "Unexpected credential requests through email links are suspicious.",
+    destination: "The destination host is not the official company domain."
+};
+
 function renderMissionTwo() {
-
-    const clues = [
-        {
-            id: "sender",
-            title: "01 · Sender domain",
-            description:
-                "The sender uses aureliaglobal-support.com, while the legitimate corporate domain is aureliaglobal.com.",
-            answer: "The sender domain does not match the legitimate corporate domain."
-        },
-
-        {
-            id: "urgency",
-            title: "02 · Urgency and threat",
-            description:
-                "The email imposes a two-hour deadline and threatens immediate enterprise access suspension.",
-            answer: "Pressure and threats encourage rushed decisions."
-        },
-
-        {
-            id: "credentials",
-            title: "03 · Credential request",
-            description:
-                "The message asks the employee to verify credentials through an email button.",
-            answer: "Unexpected credential requests through email links are suspicious."
-        },
-
-        {
-            id: "destination",
-            title: "04 · Destination host",
-            description:
-                "The verification destination uses the lookalike domain rather than the legitimate company domain.",
-            answer: "The destination host is not the official company domain."
-        }
-
-    ];
-
-    const completed = isMissionComplete(1);
+    const clues = Object.keys(redFlags);
+    const found = state.answers.mission2Clues || [];
 
     return `
-
-        ${missionHeading(
-            2,
-            "Identify the Red Flags",
-            "Inspect the simulated message. Select all four suspicious indicators to complete your investigation.",
-            "FORENSIC TELEMETRY · MISSION 2"
-        )}
-
+        ${missionHeading(2, "Identify the Red Flags",
+            "Inspect the simulated message. Identify all four suspicious indicators.",
+            "FORENSIC TELEMETRY · MISSION 2")}
 
         <div class="panel mt-20">
-
             <div class="panel-heading">
                 <h3>Simulated email evidence</h3>
                 <span class="status-badge badge-warning">SUSPICIOUS MESSAGE</span>
             </div>
-
             <div class="email-window">
-
                 <div class="email-details">
-
-                    <div class="email-detail">
-                        <span>From:</span>
-                        <span>ITsupport@aureliaglobal-support.com</span>
-                    </div>
-
-                    <div class="email-detail">
-                        <span>To:</span>
-                        <span>employee@aureliaglobal.coY</span>
-                    </div>
-
-                    <div class="email-detail">
-                        <span>Subject:</span>
-                        <span>Immediate Action Required — Account Verification</span>
-                    </div>
-
+                    <div class="email-detail"><span>From:</span>
+                        <button class="hotspot ${found.includes("sender") ? "found" : ""}"
+                                data-action="mission2-clue" data-clue="sender">
+                            ITsupport@aureliaglobal-support.com
+                        </button></div>
+                    <div class="email-detail"><span>To:</span><span>employee@aureliaglobal.coY</span></div>
+                    <div class="email-detail"><span>Subject:</span><span>Immediate Action Required — Account Verification</span></div>
                 </div>
-
                 <div class="email-body">
-
-                    <p>
-                        Aurelia Global SSO maintenance has detected
-                        unverified multi-factor credentials.
-                    </p>
-
-                    <p>
-                        Verify your profile within
-                        <button class="hotspot ${selectedHotspots.includes("urgency") ? "found" : ""}"
-                            data-action="mission2-clue"
-                            data-clue="urgency">
-                            TWO HOURS
-                        </button>
-                        to avoid immediate account suspension.
-                    </p>
-
-                    <p>
-                        Verify your
-                        <button class="hotspot ${selectedHotspots.includes("credentials") ? "found" : ""}"
-                            data-action="mission2-clue"
-                            data-clue="credentials">
-                            ACCOUNT CREDENTIALS
-                        </button>
-                        using the button below.
-                    </p>
-
-                    <div class="email-verify">
+                    <p>Aurelia Global SSO maintenance has detected unverified multi-factor credentials.</p>
+                    <p>Verify your profile within
+                        <button class="hotspot ${found.includes("urgency") ? "found" : ""}"
+                                data-action="mission2-clue" data-clue="urgency">TWO HOURS</button>
+                        to avoid immediate account suspension.</p>
+                    <p>Verify your
+                        <button class="hotspot ${found.includes("credentials") ? "found" : ""}"
+                                data-action="mission2-clue" data-clue="credentials">ACCOUNT CREDENTIALS</button>
+                        using the button below.</p>
+                    <button class="email-verify" data-action="mission2-clue" data-clue="destination">
                         Verify Account Credentials Now
-                    </div>
-
-                    <p class="email-disclaimer">
-                        SIMULATED MESSAGE · LINK IS NOT ACTIVE
-                    </p>
-
+                    </button>
+                    <p class="email-disclaimer">SIMULATED MESSAGE · LINK IS NOT ACTIVE</p>
                 </div>
-
             </div>
-
         </div>
-
 
         <div class="panel mt-20">
-
             <div class="panel-heading">
                 <h3>Find the four red flags</h3>
-
-                <span class="panel-tag">
-                    ${selectedHotspots.length} / 4 IDENTIFIED
-                </span>
+                <span class="panel-tag">${found.length} / 4 IDENTIFIED</span>
             </div>
-
-            <p>
-                Select each indicator below. You can inspect the sender,
-                urgency, credential request and destination.
-            </p>
-
+            <p>Select each indicator below.</p>
             <div class="card-grid mt-20">
-
-                ${clues.map(clue => `
-
-                    <button
-                        class="option-button ${selectedHotspots.includes(clue.id) ? "selected" : ""}"
-                        data-action="mission2-clue"
-                        data-clue="${clue.id}"
-                    >
-
-                        <span>
-                            ${selectedHotspots.includes(clue.id) ? "✓" : "＋"}
-                        </span>
-
-                        <span>${clue.title}</span>
-
-                    </button>
-
-                `).join("")}
-
+                ${clues.map((id, index) => `
+                    <button class="option-button ${found.includes(id) ? "selected" : ""}"
+                            data-action="mission2-clue" data-clue="${id}">
+                        <span>${found.includes(id) ? "✓" : "＋"}</span>
+                        <span>${["Sender domain", "Urgency and threat", "Credential request", "Destination host"][index]}</span>
+                    </button>`).join("")}
             </div>
-
             <div id="mission2Feedback" class="mt-20">
-
-                ${selectedHotspots.length
-                    ? `<p class="text-cyan">${selectedHotspots.length} of 4 indicators identified.</p>`
-                    : ""
-                }
-
+                ${found.length ? `<p class="text-cyan">${found.length} of 4 indicators identified.</p>` : ""}
             </div>
-
         </div>
-
-
-        ${completed
-            ? feedback(
-                "Mission completed",
-                "All four red flags have been identified. The message should be treated as suspicious."
-            )
-            : ""
-        }
-
+        ${hintButton(1)}
     `;
-
 }
-
 
 function selectMissionTwoClue(id) {
+    const found = state.answers.mission2Clues || [];
 
-    const validClues = [
-        "sender",
-        "urgency",
-        "credentials",
-        "destination"
-    ];
+    if (!redFlags[id] || found.includes(id)) return;
 
-    if (!validClues.includes(id)) return;
+    found.push(id);
+    state.answers.mission2Clues = found;
 
-    if (!selectedHotspots.includes(id)) {
+    markEvidenceCollected("metadata");
+    awardPoints(`m2:${id}`, 20);
 
-        selectedHotspots.push(id);
-
-        showToast("Red flag identified.");
-
-    }
-
-    if (id === "sender") markEvidenceCollected("metadata");
-    if (id === "destination") markEvidenceCollected("metadata");
-
-    if (selectedHotspots.length === 4) {
-
+    if (found.length === 4) {
+        unlockAchievement("eagleEye");
         completeMission(1);
-
-        showToast("All four red flags identified. Mission 3 unlocked.");
-
+        showToast("All red flags identified. Mission 3 unlocked.");
     }
 
+    saveState();
     renderMission();
-
 }
 
-
 /* =========================================================
-   11. MISSION 3
-   INVESTIGATE THE EMAIL
+   MISSION 3 — EMAIL INVESTIGATION
    ========================================================= */
 
 function renderMissionThree() {
-
-    const completed = isMissionComplete(2);
+    const answer = state.answers.mission3;
+    const request = state.answers.mission3Request;
 
     return `
-
-        ${missionHeading(
-            3,
-            "Investigate the Email",
-            "The sender domain looks suspicious, but the authentication results introduce a more interesting question. Work through the technical evidence before reaching your conclusion.",
-            "FORENSIC TELEMETRY · MISSION 3"
-        )}
-
+        ${missionHeading(3, "Investigate the Email",
+            "Authentication results introduce a more interesting question. Work through the technical evidence.",
+            "FORENSIC TELEMETRY · MISSION 3")}
 
         <div class="card-grid three-columns mt-20">
-
-            ${infoCard(
-                "Sender",
-                "ITsupport@aureliaglobal-support.com",
-                "SIMULATED EVIDENCE"
-            )}
-
-            ${infoCard(
-                "Legitimate domain",
-                "aureliaglobal.com",
-                "CORPORATE DOMAIN"
-            )}
-
-            ${infoCard(
-                "Destination",
-                "https://aureliaglobal-support.com/verify-account",
-                "DO NOT OPEN"
-            )}
-
+            ${infoCard("Sender", "ITsupport@aureliaglobal-support.com", "SIMULATED EVIDENCE")}
+            ${infoCard("Legitimate domain", "aureliaglobal.com", "CORPORATE DOMAIN")}
+            ${infoCard("Destination", "aureliaglobal-support.com/verify-account", "DO NOT OPEN")}
         </div>
 
+        ${panel("Email authentication results", `
+            <div class="card-grid three-columns">
+                <div class="info-card"><span class="status-badge badge-success">PASS</span><h3 class="mt-10">SPF</h3><p class="mt-10">Sending IP authorised by the lookalike domain's SPF policy.</p></div>
+                <div class="info-card"><span class="status-badge badge-success">PASS</span><h3 class="mt-10">DKIM</h3><p class="mt-10">Valid signature associated with d=aureliaglobal-support.com.</p></div>
+                <div class="info-card"><span class="status-badge badge-warning">p=none</span><h3 class="mt-10">DMARC</h3><p class="mt-10">Monitoring policy; no quarantine or reject enforcement.</p></div>
+            </div>
+            <div class="feedback warning mt-20">
+                <strong>Investigator's caution</strong>
+                <p>A lookalike domain can pass SPF and DKIM for itself. Authentication establishes provenance, not intent.</p>
+            </div>
+        `, "PROTOCOL-LEVEL VERIFICATION")}
 
-        ${panel(
-            "Email authentication results",
-            `
-                <p class="mb-15">
-                    Inspect each authentication mechanism. A passing result
-                    does not establish that an email is safe.
-                </p>
-
-                <div class="card-grid three-columns">
-
-                    <div class="info-card">
-                        <span class="status-badge badge-success">PASS</span>
-                        <h3 class="mt-10">SPF</h3>
-                        <p class="mt-10">
-                            The sending IP is authorised by the
-                            lookalike domain's SPF policy.
-                        </p>
-                        <small class="mono text-cyan">RFC 7208</small>
-                    </div>
-
-                    <div class="info-card">
-                        <span class="status-badge badge-success">PASS</span>
-                        <h3 class="mt-10">DKIM</h3>
-                        <p class="mt-10">
-                            A valid signature is associated with
-                            d=aureliaglobal-support.com.
-                        </p>
-                        <small class="mono text-cyan">RFC 6376</small>
-                    </div>
-
-                    <div class="info-card">
-                        <span class="status-badge badge-warning">p=none</span>
-                        <h3 class="mt-10">DMARC</h3>
-                        <p class="mt-10">
-                            Monitoring policy. No quarantine or
-                            reject enforcement is specified.
-                        </p>
-                        <small class="mono text-cyan">RFC 7489</small>
-                    </div>
-
-                </div>
-
-                <div class="feedback warning mt-20">
-                    <strong>Investigator's caution</strong>
-                    <p>
-                        A newly registered lookalike domain can pass
-                        SPF and DKIM for its own domain. Authentication
-                        establishes identity provenance, not intent.
-                    </p>
-                </div>
-            `,
-            "PROTOCOL-LEVEL VERIFICATION"
-        )}
-
-
-        ${panel(
-            "Email metadata",
-            `
-                <div class="table-wrapper">
-                    <table class="data-table">
-
-                        <thead>
-                            <tr>
-                                <th>FIELD</th>
-                                <th>OBSERVED VALUE</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            <tr>
-                                <td>Reply-To</td>
-                                <td>collect.aurelia@mail-relay.net</td>
-                            </tr>
-
-                            <tr>
-                                <td>Received</td>
-                                <td>Unknown relay 203.0.113.45</td>
-                            </tr>
-
-                            <tr>
-                                <td>Date</td>
-                                <td>08 Nov 2026, 07:42 UTC</td>
-                            </tr>
-
-                            <tr>
-                                <td>X-Mailer</td>
-                                <td>bulk-sender v2</td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-                </div>
-
-                <p class="mt-15">
-                    The Reply-To address differs from the sender domain.
-                    The relay and bulk-sender metadata deserve further
-                    investigation.
-                </p>
-            `,
-            "SIMULATED METADATA"
-        )}
-
+        ${panel("Email metadata", `
+            <div class="table-wrapper"><table class="data-table">
+                <thead><tr><th>FIELD</th><th>OBSERVED VALUE</th></tr></thead>
+                <tbody>
+                    <tr><td>Reply-To</td><td>collect.aurelia@mail-relay.net</td></tr>
+                    <tr><td>Received</td><td>Unknown relay 203.0.113.45</td></tr>
+                    <tr><td>Date</td><td>08 Nov 2026, 07:42 UTC</td></tr>
+                    <tr><td>X-Mailer</td><td>bulk-sender v2</td></tr>
+                </tbody></table></div>
+            <p class="mt-15">The Reply-To address differs from the sender domain. The relay and bulk-sender metadata deserve investigation.</p>
+        `, "SIMULATED METADATA")}
 
         <div class="panel mt-20">
-
             <h3>Investigator's challenge</h3>
-
-            <p class="mt-10">
-                Which conclusion best explains the evidence?
-            </p>
-
+            <p class="mt-10">Which conclusion best explains the evidence?</p>
             <div class="mt-20" style="display:grid;gap:10px;">
-
-                <button class="option-button"
-                    data-action="mission3-answer"
-                    data-answer="safe">
-                    A. SPF and DKIM passed, so the email is safe.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission3-answer"
-                    data-answer="suspicious">
-                    B. The email is suspicious despite passing SPF and DKIM.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission3-answer"
-                    data-answer="proof">
-                    C. The metadata proves the identity of the attacker.
-                </button>
-
+                ${[
+                    ["safe", "A. SPF and DKIM passed, so the email is safe."],
+                    ["suspicious", "B. The email is suspicious despite passing SPF and DKIM."],
+                    ["proof", "C. The metadata proves the identity of the attacker."]
+                ].map(([id, text]) => `<button class="option-button ${answer === id ? "selected" : ""}" data-action="mission3-answer" data-answer="${id}">${text}</button>`).join("")}
             </div>
-
-            <div id="mission3Feedback" class="mt-20"></div>
-
+            <div id="mission3Feedback" class="mt-20">${answer ? missionThreeFeedback(answer) : ""}</div>
         </div>
-
 
         <div class="panel mt-20">
-
             <h3>What would you request next?</h3>
-
-            <p class="mt-10">
-                Select the most useful additional investigation material.
-            </p>
-
             <div class="mt-20" style="display:grid;gap:10px;">
-
-                <button class="option-button"
-                    data-action="mission3-request"
-                    data-request="headers">
-                    Full email headers and gateway logs
-                </button>
-
-                <button class="option-button"
-                    data-action="mission3-request"
-                    data-request="domain">
-                    The legitimate domain's DMARC record
-                </button>
-
-                <button class="option-button"
-                    data-action="mission3-request"
-                    data-request="registration">
-                    The lookalike URL's registration date and history
-                </button>
-
+                ${[
+                    ["headers", "Full email headers and gateway logs"],
+                    ["domain", "The legitimate domain's DMARC record"],
+                    ["registration", "The lookalike URL's registration history"]
+                ].map(([id, text]) => `<button class="option-button ${request === id ? "selected" : ""}" data-action="mission3-request" data-request="${id}">${text}</button>`).join("")}
             </div>
-
-            <div id="mission3RequestFeedback" class="mt-20"></div>
-
+            <div id="mission3RequestFeedback" class="mt-20">${request ? feedback("Investigation request recorded.", missionThreeRequestText(request)) : ""}</div>
         </div>
-
-
-        ${completed
-            ? feedback(
-                "Mission completed",
-                "You identified why passing authentication does not make the message trustworthy."
-            )
-            : ""
-        }
-
+        ${hintButton(2)}
     `;
-
 }
 
+function missionThreeFeedback(answer) {
+    if (answer === "suspicious") {
+        return feedback("Correct assessment.", "SPF and DKIM passed for the lookalike sender domain. DMARC is p=none. These results do not prove the sender is the legitimate company.", "success");
+    }
+    return feedback("Not quite.", answer === "safe"
+        ? "Authentication can pass for an attacker's own domain. Compare the authenticated domain with the legitimate organisation."
+        : "Metadata provides clues, but does not establish the attacker's identity.", "warning");
+}
+
+function missionThreeRequestText(request) {
+    return {
+        headers: "Full headers and gateway logs help reconstruct transmission and authentication context.",
+        domain: "The legitimate domain's DMARC record helps establish its published email-authentication policy.",
+        registration: "Domain registration history can reveal whether the lookalike domain was recently created or changed."
+    }[request];
+}
 
 function answerMissionThree(answer) {
-
-    const feedbackArea = $("#mission3Feedback");
+    state.answers.mission3 = answer;
 
     if (answer === "suspicious") {
-
-        state.answers.mission3 = answer;
-
         markEvidenceCollected("authenticationDetails");
         markEvidenceCollected("metadata");
-
-        feedbackArea.innerHTML = feedback(
-            "Correct assessment.",
-            "SPF and DKIM passed for the lookalike sender domain. DMARC is set to p=none. These results do not prove that the sender is the legitimate company.",
-            "success"
-        );
-
-        checkMissionThreeCompletion();
-
-    } else if (answer === "safe") {
-
-        feedbackArea.innerHTML = feedback(
-            "Not quite.",
-            "Authentication can pass for an attacker's own domain. Always compare the authenticated domain with the legitimate organisation and examine message intent.",
-            "warning"
-        );
-
-    } else if (answer === "proof") {
-
-        feedbackArea.innerHTML = feedback(
-            "Not quite.",
-            "The metadata provides investigative clues, but it does not establish the identity of the attacker.",
-            "warning"
-        );
-
+        awardPoints("m3:interpretation", 40);
+        unlockAchievement("headerHunter");
+    } else {
+        showToast("Review the authentication results and try again.");
     }
 
+    saveState();
+    renderMission();
+    checkMissionThreeCompletion();
 }
-
 
 function answerMissionThreeRequest(request) {
-
-    const explanations = {
-
-        headers:
-            "Full headers and gateway logs can help reconstruct the message's transmission path and authentication context.",
-
-        domain:
-            "The legitimate domain's DMARC record helps investigators understand the organisation's published email-authentication policy.",
-
-        registration:
-            "Domain registration history can help establish whether the lookalike domain was newly registered or changed recently."
-
-    };
-
-    if (!explanations[request]) return;
-
     state.answers.mission3Request = request;
-
     markEvidenceCollected("metadata");
+    awardPoints("m3:request", 35);
 
-    $("#mission3RequestFeedback").innerHTML =
-        feedback("Useful investigation request", explanations[request]);
-
+    saveState();
+    renderMission();
     checkMissionThreeCompletion();
-
 }
-
 
 function checkMissionThreeCompletion() {
-
-    if (
-        state.answers.mission3 === "suspicious" &&
-        state.answers.mission3Request
-    ) {
-
+    if (state.answers.mission3 === "suspicious" && state.answers.mission3Request) {
         completeMission(2);
-
         renderMissionFooter();
-
         showToast("Email investigation complete. Mission 4 unlocked.");
-
     }
-
 }
 
-
 /* =========================================================
-   12. MISSION 4
-   EXAMINE THE EVIDENCE
+   MISSION 4 — EVIDENCE / TIMELINE
    ========================================================= */
 
 const logDatabase = {
-
     email: {
         file: "email_delivery.log",
         time: "09:05",
         title: "Email delivery record",
-        lines: [
-            "[09:05:00] External message accepted by mail gateway.",
-            "[09:05:01] Subject: Urgent: payroll update.",
-            "[09:05:02] Sender classified as external.",
-            "[09:05:03] Message delivered to employee mailbox.",
-            "[SIMULATED] Message record preserved."
-        ],
+        lines: ["[09:05:00] External message accepted by mail gateway.", "[09:05:01] Subject: Urgent: payroll update.", "[09:05:02] Sender classified as external.", "[09:05:03] Message delivered to employee mailbox."],
         evidence: "email"
     },
-
     browser: {
         file: "browser_activity.log",
         time: "09:14",
-        title: "Browser access record",
-        lines: [
-            "[09:14:00] Employee opened external verification URL.",
-            "[09:14:03] Page imitates Aurelia Global login.",
-            "[09:14:05] External page loaded.",
-            "[SIMULATED] Browser activity preserved."
-        ],
+        title: "Browser activity record",
+        lines: ["[09:14:00] Employee opened external verification URL.", "[09:14:03] Page imitates Aurelia Global login.", "[09:14:05] External page loaded."],
         evidence: "browser"
     },
-
     credentials: {
         file: "credential_activity.log",
         time: "09:16",
         title: "Credential submission record",
-        lines: [
-            "[09:16:00] Credentials submitted to external page.",
-            "[09:16:02] No second-factor challenge recorded.",
-            "[SIMULATED] Submission record preserved."
-        ],
+        lines: ["[09:16:00] Credentials submitted to external page.", "[09:16:02] No second-factor challenge recorded."],
         evidence: "credentials"
     },
-
     authentication: {
         file: "authentication.log",
         time: "09:24",
         title: "Unfamiliar login",
-        lines: [
-            "[09:24:00] Successful authentication recorded.",
-            "[09:24:01] Source IP: 203.0.113.47.",
-            "[09:24:02] Device: unfamiliar device.",
-            "[09:24:03] Time: outside usual hours.",
-            "[SIMULATED] Authentication record preserved."
-        ],
+        lines: ["[09:24:00] Successful authentication recorded.", "[09:24:01] Source IP: 203.0.113.47.", "[09:24:02] Device: unfamiliar device.", "[09:24:03] Time: outside usual hours."],
         evidence: "authentication"
     },
-
     files: {
         file: "file_access.log",
         time: "09:27",
         title: "File access record",
-        lines: [
-            "[09:27:00] Shared finance folder listed.",
-            "[09:27:03] One file opened from the new session.",
-            "[09:27:05] Exact access scope not established.",
-            "[SIMULATED] File access record preserved."
-        ],
+        lines: ["[09:27:00] Shared finance folder listed.", "[09:27:03] One file opened from the new session.", "[09:27:05] Exact access scope not established."],
         evidence: "files"
     }
-
 };
 
-
-function renderMissionFour() {
-
-    const completed = isMissionComplete(3);
-
-    const logs = Object.entries(logDatabase);
-
-    return `
-
-        ${missionHeading(
-            4,
-            "Examine the Evidence",
-            "The security team has collected several records. Inspect each one, collect the evidence and reconstruct the incident timeline.",
-            "DIGITAL FORENSICS · MISSION 4"
-        )}
-
-
-        ${panel(
-            "Digital forensics briefing",
-            `
-                <p>
-                    Investigators correlate different sources to
-                    reconstruct what happened, when it happened and
-                    how far the incident may have reached.
-                </p>
-
-                <div class="card-grid three-columns mt-20">
-
-                    ${infoCard(
-                        "Logs",
-                        "Time-stamped records of system events."
-                    )}
-
-                    ${infoCard(
-                        "Metadata",
-                        "Data about a message or file, such as headers."
-                    )}
-
-                    ${infoCard(
-                        "IP addresses",
-                        "Network origins and relays."
-                    )}
-
-                    ${infoCard(
-                        "Indicators of compromise",
-                        "Traces that signal a possible intrusion."
-                    )}
-
-                    ${infoCard(
-                        "Evidence preservation",
-                        "Copying data without altering it."
-                    )}
-
-                    ${infoCard(
-                        "Chain of custody",
-                        "A record of who held the evidence, and when."
-                    )}
-
-                </div>
-            `,
-            "FORENSIC BRIEFING"
-        )}
-
-
-        <div class="panel mt-20">
-
-            <div class="panel-heading">
-                <h3>Evidence acquisition</h3>
-                <span class="panel-tag">${selectedLogs.length} / 5 INSPECTED</span>
-            </div>
-
-            <p>
-                Open each record to inspect its contents. Collect all
-                five records before reconstructing the timeline.
-            </p>
-
-            <div class="card-grid mt-20">
-
-                ${logs.map(([id, log]) => `
-
-                    <button
-                        class="option-button ${selectedLogs.includes(id) ? "selected" : ""}"
-                        data-action="inspect-log"
-                        data-log="${id}"
-                    >
-
-                        <span>
-                            ${selectedLogs.includes(id) ? "✓" : "▤"}
-                        </span>
-
-                        <span>
-                            <strong>${log.file}</strong>
-                            <small class="mono muted">${log.time} · SIMULATED</small>
-                        </span>
-
-                    </button>
-
-                `).join("")}
-
-            </div>
-
-            <div id="logViewer" class="mt-20">
-
-                <div class="empty-evidence">
-                    <span>▤</span>
-                    <strong>Select an evidence record</strong>
-                    <p>Its simulated contents will appear here.</p>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="panel mt-20">
-
-            <div class="panel-heading">
-                <h3>Reconstruct the incident timeline</h3>
-                <span class="panel-tag">${timelineAnswers.length} / 7 EVENTS</span>
-            </div>
-
-            <p>
-                Arrange the events in chronological order. Select the
-                next event in the sequence, beginning at 09:05.
-            </p>
-
-            <div id="timelineProgress" class="mt-20">
-
-                ${renderTimelineProgress()}
-
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="card-grid mt-20">
-
-                ${getTimelineOptions()}
-
-            </div>
-
-            <div id="timelineFeedback" class="mt-20"></div>
-
-        </div>
-
-
-        ${panel(
-            "Investigator's discussion",
-            `
-                <h4 class="text-cyan">Which evidence is most important?</h4>
-                <p class="mt-10">
-                    Correlate the reported credential submission with
-                    the subsequent unfamiliar successful login.
-                </p>
-
-                <div class="divider"></div>
-
-                <h4 class="text-cyan">What does each record tell us?</h4>
-                <p class="mt-10">
-                    Each record establishes a different part of the
-                    sequence. No single event tells the entire story.
-                </p>
-
-                <div class="divider"></div>
-
-                <h4 class="text-cyan">What can we not conclude yet?</h4>
-                <p class="mt-10">
-                    We cannot establish the attacker's identity or
-                    determine the full scope of file access from
-                    the available records alone.
-                </p>
-            `,
-            "DISCUSS"
-        )}
-
-
-        ${completed
-            ? feedback(
-                "Mission completed",
-                "You inspected the evidence records and reconstructed the incident sequence."
-            )
-            : ""
-        }
-
-    `;
-
-}
-
-
 const timelineEvents = [
-
-    {
-        id: "email",
-        time: "09:05",
-        title: "Suspicious email received"
-    },
-
-    {
-        id: "opened",
-        time: "09:12",
-        title: "Employee opens the email"
-    },
-
-    {
-        id: "link",
-        time: "09:14",
-        title: "Suspicious link visited"
-    },
-
-    {
-        id: "credentials",
-        time: "09:16",
-        title: "Login credentials entered"
-    },
-
-    {
-        id: "login",
-        time: "09:24",
-        title: "Unfamiliar successful login"
-    },
-
-    {
-        id: "files",
-        time: "09:27",
-        title: "Unusual access to confidential files"
-    },
-
-    {
-        id: "contact",
-        time: "09:30",
-        title: "Employee contacts IT support"
-    }
-
+    { id: "email", time: "09:05", title: "Suspicious email received" },
+    { id: "opened", time: "09:12", title: "Employee opens the email" },
+    { id: "link", time: "09:14", title: "Suspicious link visited" },
+    { id: "credentials", time: "09:16", title: "Login credentials entered" },
+    { id: "login", time: "09:24", title: "Unfamiliar successful login" },
+    { id: "files", time: "09:27", title: "Unusual finance-file access" },
+    { id: "contact", time: "09:30", title: "Employee contacts IT support" }
 ];
 
+function renderMissionFour() {
+    const logs = Object.entries(logDatabase);
+    const inspected = state.answers.mission4Logs || [];
+    const timeline = state.answers.timeline || [];
 
-function renderTimelineProgress() {
+    return `
+        ${missionHeading(4, "Examine the Evidence",
+            "Inspect the records, correlate the events and reconstruct the incident chronology.",
+            "DIGITAL FORENSICS · MISSION 4")}
 
-    if (!timelineAnswers.length) {
+        ${panel("Digital forensics briefing", `
+            <div class="card-grid three-columns">
+                ${infoCard("Logs", "Time-stamped system records.")}
+                ${infoCard("Metadata", "Information about messages and files.")}
+                ${infoCard("Indicators of compromise", "Traces that signal possible intrusion.")}
+                ${infoCard("Evidence preservation", "Copying data without altering it.")}
+                ${infoCard("Chain of custody", "Documenting who handled evidence and when.")}
+                ${infoCard("Correlation", "Connecting independent records into a sequence.")}
+            </div>
+        `, "FORENSIC BRIEFING")}
 
-        return `
-            <p class="muted">
-                No events arranged yet. Start with 09:05.
-            </p>
-        `;
+        <div class="panel mt-20">
+            <div class="panel-heading"><h3>Evidence acquisition</h3><span class="panel-tag">${inspected.length} / 5 INSPECTED</span></div>
+            <p>Open each record to inspect its contents.</p>
+            <div class="card-grid mt-20">
+                ${logs.map(([id, log]) => `
+                    <button class="option-button ${inspected.includes(id) ? "selected" : ""}" data-action="inspect-log" data-log="${id}">
+                        <span>${inspected.includes(id) ? "✓" : "▤"}</span>
+                        <span><strong>${log.file}</strong><small class="mono muted">${log.time} · SIMULATED</small></span>
+                    </button>`).join("")}
+            </div>
+            <div id="logViewer" class="mt-20">${renderLogViewer(state.answers.lastLog)}</div>
+        </div>
 
+        <div class="panel mt-20">
+            <div class="panel-heading"><h3>Reconstruct the incident timeline</h3><span class="panel-tag">${timeline.length} / 7 EVENTS</span></div>
+            <p>Arrange the events chronologically. A wrong choice does not erase your progress.</p>
+            <div id="timelineProgress" class="mt-20">${renderTimelineProgress()}</div>
+            <div class="divider"></div>
+            <div class="card-grid timeline-options mt-20">${getTimelineOptions()}</div>
+            <div id="timelineFeedback" class="mt-20"></div>
+        </div>
+
+        ${panel("Investigator's discussion", `
+            <h4 class="text-cyan">What is the strongest correlation?</h4>
+            <p class="mt-10">Credential submission is followed by an unfamiliar successful login.</p>
+            <div class="divider"></div>
+            <h4 class="text-cyan">What remains uncertain?</h4>
+            <p class="mt-10">Attacker identity, complete access scope and possible exfiltration remain unconfirmed.</p>
+        `, "DISCUSS")}
+        ${hintButton(3)}
+    `;
+}
+
+function renderLogViewer(id) {
+    const log = logDatabase[id];
+
+    if (!log) {
+        return `<div class="empty-evidence"><span>▤</span><strong>Select an evidence record</strong><p>Its simulated contents will appear here.</p></div>`;
     }
 
     return `
-        <div class="timeline">
-
-            ${timelineAnswers.map(id => {
-
-                const event = timelineEvents.find(item => item.id === id);
-
-                return `
-                    <div class="timeline-item">
-
-                        <span class="timeline-time">${event.time}</span>
-
-                        <h4>${event.title}</h4>
-
-                    </div>
-                `;
-
-            }).join("")}
-
+        <div class="log-window">
+            <div class="log-header"><strong>${escapeHTML(log.file)}</strong><span class="status-badge badge-info">SIMULATED RECORD</span></div>
+            <div class="log-content">${log.lines.map(line => `<span class="log-line">${escapeHTML(line)}</span>`).join("")}</div>
         </div>
+        ${feedback(log.title, evidenceDescription(log.evidence))}
     `;
-
 }
 
-
-function getTimelineOptions() {
-
-    const remaining = timelineEvents.filter(
-        event => !timelineAnswers.includes(event.id)
-    );
-
-    return remaining.map(event => `
-
-        <button
-            class="option-button"
-            data-action="timeline-select"
-            data-event="${event.id}"
-        >
-
-            <span class="mono text-cyan">${event.time}</span>
-
-            <span>${event.title}</span>
-
-        </button>
-
-    `).join("");
-
+function evidenceDescription(id) {
+    return {
+        email: "The suspicious message reached the employee mailbox at 09:05.",
+        browser: "The employee visited the imitation login page at 09:14.",
+        credentials: "Credentials were submitted at 09:16.",
+        authentication: "An unfamiliar successful login occurred at 09:24 from 203.0.113.47.",
+        files: "A finance folder was listed and one file opened at 09:27. Scope remains uncertain."
+    }[id] || "Evidence record preserved.";
 }
-
 
 function inspectLog(id) {
-
     const log = logDatabase[id];
-
     if (!log) return;
 
-    if (!selectedLogs.includes(id)) {
+    const inspected = state.answers.mission4Logs || [];
 
-        selectedLogs.push(id);
+    if (!inspected.includes(id)) {
+        inspected.push(id);
+        state.answers.mission4Logs = inspected;
 
+        markEvidenceCollected(log.evidence);
+        awardPoints(`m4:log:${id}`, 10);
     }
 
-    markEvidenceCollected(log.evidence);
+    state.answers.lastLog = id;
 
-    if (id === "authentication") {
-        markEvidenceCollected("authentication");
+    if (id === "authentication") markEvidenceCollected("authentication");
+    if (id === "files") markEvidenceCollected("files");
+
+    saveState();
+    renderMission();
+
+    if (inspected.length === 5) {
+        unlockAchievement("evidenceExpert");
     }
-
-    if (id === "files") {
-        markEvidenceCollected("files");
-    }
-
-    $("#logViewer").innerHTML = `
-
-        <div class="log-window">
-
-            <div class="log-header">
-                <strong>${log.file}</strong>
-                <span class="status-badge badge-info">SIMULATED RECORD</span>
-            </div>
-
-            <div class="log-content">
-                ${log.lines.map(line => {
-
-                    const safeLine = escapeHTML(line);
-
-                    return `<span class="log-line">${safeLine}</span>`;
-
-                }).join("")}
-            </div>
-
-        </div>
-
-        <div class="feedback success">
-            <strong>${log.title}</strong>
-            <p>${evidenceDatabase[log.evidence].description}</p>
-        </div>
-
-    `;
 
     updateMissionFourProgress();
-
 }
 
+function renderTimelineProgress() {
+    const answers = state.answers.timeline || [];
 
-function selectTimelineEvent(id) {
-
-    const expected = timelineEvents[timelineAnswers.length];
-
-    if (!expected) return;
-
-    if (id !== expected.id) {
-
-        $("#timelineFeedback").innerHTML = feedback(
-            "Check the sequence again.",
-            `The next event should be at ${expected.time}. Think about what happened first.`,
-            "warning"
-        );
-
-        return;
-
+    if (!answers.length) {
+        return `<p class="muted">No events arranged yet. Start with 09:05.</p>`;
     }
 
-    timelineAnswers.push(id);
+    return `<div class="timeline">${answers.map(id => {
+        const event = timelineEvents.find(item => item.id === id);
+        return `<div class="timeline-item"><span class="timeline-time">${event.time}</span><h4>${event.title}</h4></div>`;
+    }).join("")}</div>`;
+}
 
-    $("#timelineFeedback").innerHTML = feedback(
-        "Correct chronological placement.",
-        `${expected.time} — ${expected.title}`,
+function getTimelineOptions() {
+    const answers = state.answers.timeline || [];
+    const remaining = timelineEvents.filter(event => !answers.includes(event.id));
+
+    // Deliberately shuffled: participants must interpret the chronology.
+    const shuffled = [...remaining].sort(() => Math.random() - 0.5);
+
+    return shuffled.map(event => `
+        <button class="option-button" data-action="timeline-select" data-event="${event.id}">
+            <span class="mono text-cyan">${event.time}</span><span>${event.title}</span>
+        </button>`).join("");
+}
+
+function selectTimelineEvent(id) {
+    const answers = state.answers.timeline || [];
+    const expected = timelineEvents[answers.length];
+
+    if (!expected || answers.includes(id)) return;
+
+    if (id !== expected.id) {
+        $("#timelineFeedback").innerHTML = feedback(
+            "Sequence mismatch.",
+            "Compare the timestamps and distinguish email delivery, opening, link access and credential submission.",
+            "warning"
+        );
+        return;
+    }
+
+    answers.push(id);
+    state.answers.timeline = answers;
+
+    awardPoints(`m4:timeline:${id}`, Math.round(50 / 7));
+
+    if (answers.length === 7) {
+        unlockAchievement("timelineMaster");
+    }
+
+    saveState();
+    renderMission();
+    updateMissionFourProgress();
+}
+
+function updateMissionFourProgress() {
+    const logs = state.answers.mission4Logs || [];
+    const timeline = state.answers.timeline || [];
+
+    if (logs.length === 5 && timeline.length === 7) {
+        completeMission(3);
+        renderMissionFooter();
+        showToast("Evidence examined. Mission 5 unlocked.");
+    }
+}
+
+/* =========================================================
+   MISSION 5 — FINAL VERDICT
+   ========================================================= */
+
+const FINAL_ANSWERS = {
+    classification: "phishing",
+    compromise: "suspected",
+    response: "contain"
+};
+
+function renderMissionFive() {
+    selectedFinalAnswers = state.answers.finalVerdict || {};
+
+    return `
+        ${missionHeading(5, "What Really Happened?",
+            "Deliver your final assessment using the evidence you collected.",
+            "FINAL BRIEFING · MISSION 5")}
+
+        ${panel("Evidence gathered", `
+            <div class="card-grid three-columns">
+                ${infoCard("Suspicious sender", "Lookalike domain impersonates the company.")}
+                ${infoCard("Urgent request", "The email pressures the employee to verify credentials.")}
+                ${infoCard("Link visited", "The link was visited at 09:14.")}
+                ${infoCard("Credentials entered", "Submission occurred at 09:16.")}
+                ${infoCard("Unfamiliar login", "Successful login at 09:24.")}
+                ${infoCard("File access", "Finance folder listed; one file opened at 09:27.")}
+            </div>
+        `, "SIMULATED EVIDENCE")}
+
+        <div class="panel mt-20">
+            <h3>Final investigation decisions</h3>
+            ${finalQuestion("classification", "01 · How should this incident be classified?", [
+                ["phishing", "Credential-harvesting phishing"],
+                ["malware", "Confirmed ransomware infection"],
+                ["normal", "Normal IT maintenance"]
+            ])}
+            ${finalQuestion("compromise", "02 · Was the account likely compromised?", [
+                ["suspected", "Yes — suspected account compromise is supported."],
+                ["unproven", "No — there is no evidence of unusual access."],
+                ["certain", "Yes — attacker identity and full activity are confirmed."]
+            ])}
+            ${finalQuestion("response", "03 · What should happen first?", [
+                ["contain", "Contain the incident: secure the account and revoke sessions."],
+                ["ignore", "Ignore the activity unless more employees report it."],
+                ["delete", "Delete logs to remove suspicious traces."]
+            ])}
+            <div id="mission5Feedback" class="mt-20"></div>
+            <button class="action-button mt-20" data-action="submit-verdict">SUBMIT FINAL VERDICT →</button>
+        </div>
+
+        <div id="finalReport">${state.finalReport ? renderVerdictReview() : ""}</div>
+        ${hintButton(4)}
+    `;
+}
+
+function finalQuestion(id, title, options) {
+    return `
+        <div class="divider"></div><h4>${title}</h4>
+        <div class="mt-15" style="display:grid;gap:10px;">
+            ${options.map(([value, text]) => `
+                <button class="option-button ${selectedFinalAnswers[id] === value ? "selected" : ""}"
+                        data-action="mission5-answer" data-question="${id}" data-answer="${value}">
+                    ${text}
+                </button>`).join("")}
+        </div>`;
+}
+
+function answerMissionFive(question, answer) {
+    if (!FINAL_ANSWERS[question]) return;
+
+    selectedFinalAnswers[question] = answer;
+    state.answers.finalVerdict = { ...selectedFinalAnswers };
+
+    saveState();
+    renderMission();
+
+    showToast("Answer recorded.");
+}
+
+function submitFinalVerdict() {
+    const required = Object.keys(FINAL_ANSWERS);
+    const answers = state.answers.finalVerdict || {};
+
+    const missing = required.filter(question => !answers[question]);
+
+    if (missing.length) {
+        $("#mission5Feedback").innerHTML = feedback(
+            "Investigation incomplete",
+            "Answer all three questions before submitting your verdict.",
+            "warning"
+        );
+        return;
+    }
+
+    const correctCount = required.filter(question =>
+        answers[question] === FINAL_ANSWERS[question]
+    ).length;
+
+    state.answers.finalScore = correctCount;
+
+    // Each question contributes 25 points, once only.
+    required.forEach(question => {
+        awardPoints(`m5:${question}`,
+            answers[question] === FINAL_ANSWERS[question] ? 25 : 0);
+    });
+
+    if (correctCount === 3) unlockAchievement("incidentCommander");
+
+    state.finalReport = true;
+    completeMission(4);
+    saveState();
+
+    $("#mission5Feedback").innerHTML = feedback(
+        "Investigation completed!",
+        `Your assessment scored ${correctCount} / 3. Review the evidence-based answers below.`,
         "success"
     );
 
-    renderTimelineSection();
+    $("#finalReport").innerHTML = renderVerdictReview();
+    renderMissionFooter();
 
-    updateMissionFourProgress();
-
+    showToast("Operation Blackout completed.");
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
-
-
-function renderTimelineSection() {
-
-    $("#timelineProgress").innerHTML =
-        renderTimelineProgress();
-
-    const completed = timelineAnswers.length === 7;
-
-    const remaining = getTimelineOptions();
-
-    const options = document.querySelector(".timeline-options");
-
-    const panelElement = $("#timelineProgress")
-        .closest(".panel");
-
-    if (!panelElement) return;
-
-    const optionContainer = panelElement.querySelector(".card-grid");
-
-    if (optionContainer) {
-
-        optionContainer.innerHTML = remaining || (
-            `<p class="text-success">All seven events are in chronological order.</p>`
-        );
-
-    }
-
-    const tag = panelElement.querySelector(".panel-tag");
-
-    if (tag) {
-        tag.textContent = `${timelineAnswers.length} / 7 EVENTS`;
-    }
-
-    if (completed) {
-
-        $("#timelineFeedback").innerHTML = feedback(
-            "Timeline reconstructed.",
-            "You have connected all seven events from the initial email to the employee contacting IT support.",
-            "success"
-        );
-
-    }
-
-}
-
-
-function updateMissionFourProgress() {
-
-    if (
-        selectedLogs.length === 5 &&
-        timelineAnswers.length === 7
-    ) {
-
-        completeMission(3);
-
-        renderMissionFooter();
-
-        showToast("Evidence examined. Mission 5 unlocked.");
-
-    }
-
-}
-
-
-/* =========================================================
-   13. MISSION 5
-   WHAT REALLY HAPPENED?
-   ========================================================= */
-
-function renderMissionFive() {
-
-    const completed = isMissionComplete(4);
-
-    return `
-
-        ${missionHeading(
-            5,
-            "What Really Happened?",
-            "You have examined the email, analysed authentication results and reconstructed the sequence of events. Now deliver your final assessment.",
-            "FINAL BRIEFING · MISSION 5"
-        )}
-
-
-        ${panel(
-            "Evidence gathered",
-            `
-                <div class="card-grid three-columns">
-
-                    ${infoCard(
-                        "Suspicious sender",
-                        "A lookalike domain impersonates the company."
-                    )}
-
-                    ${infoCard(
-                        "Urgent request",
-                        "The email pressures the employee to verify credentials."
-                    )}
-
-                    ${infoCard(
-                        "Link visited",
-                        "The suspicious link was visited at 09:14."
-                    )}
-
-                    ${infoCard(
-                        "Credentials entered",
-                        "Credential submission occurred at 09:16."
-                    )}
-
-                    ${infoCard(
-                        "Unfamiliar login",
-                        "A successful login was recorded at 09:24."
-                    )}
-
-                    ${infoCard(
-                        "File access",
-                        "A finance folder was listed and one file opened at 09:27."
-                    )}
-
-                </div>
-            `,
-            "SIMULATED EVIDENCE"
-        )}
-
-
-        <div class="panel mt-20">
-
-            <h3>Final investigation decisions</h3>
-
-            <p class="mt-10">
-                Select the most defensible conclusion for each question.
-            </p>
-
-
-            <div class="divider"></div>
-
-            <h4>01 · How should this incident be classified?</h4>
-
-            <div class="mt-15" style="display:grid;gap:10px;">
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="classification"
-                    data-answer="phishing">
-                    Credential-harvesting phishing
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="classification"
-                    data-answer="malware">
-                    Confirmed ransomware infection
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="classification"
-                    data-answer="normal">
-                    Normal IT maintenance
-                </button>
-
-            </div>
-
-
-            <div class="divider"></div>
-
-            <h4>02 · Was the account likely compromised?</h4>
-
-            <div class="mt-15" style="display:grid;gap:10px;">
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="compromise"
-                    data-answer="suspected">
-                    Yes — suspected account compromise is supported by the evidence.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="compromise"
-                    data-answer="unproven">
-                    No — there is no evidence of unusual access.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="compromise"
-                    data-answer="certain">
-                    Yes — the attacker's identity and full activity are confirmed.
-                </button>
-
-            </div>
-
-
-            <div class="divider"></div>
-
-            <h4>03 · What should happen first?</h4>
-
-            <div class="mt-15" style="display:grid;gap:10px;">
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="response"
-                    data-answer="contain">
-                    Contain the incident: secure the account and revoke active sessions.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="response"
-                    data-answer="ignore">
-                    Ignore the activity unless more employees report it.
-                </button>
-
-                <button class="option-button"
-                    data-action="mission5-answer"
-                    data-question="response"
-                    data-answer="delete">
-                    Delete the logs to remove suspicious traces.
-                </button>
-
-            </div>
-
-
-            <div id="mission5Feedback" class="mt-20"></div>
-
-            <button
-                class="action-button mt-20"
-                data-action="submit-verdict"
-            >
-                SUBMIT FINAL VERDICT →
-            </button>
-
-        </div>
-
-
-        <div id="finalReport">
-    ${state.finalReport ? renderVerdictReview() : ""}
-</div>
-
-
-        ${completed
-            ? feedback(
-                "Case completed",
-                "Your final assessment has been submitted. Review or print your investigation report."
-            )
-            : ""
-        }
-
-    `;
-
-}
-
-
-function answerMissionFive(question, answer) {
-
-    selectedFinalAnswers[question] = answer;
-
-    const button = document.querySelector(
-        `[data-question="${question}"][data-answer="${answer}"]`
-    );
-
-    if (button) {
-
-        document.querySelectorAll(
-            `[data-question="${question}"]`
-        ).forEach(option => {
-
-            option.classList.remove("selected");
-
-        });
-
-        button.classList.add("selected");
-
-    }
-
-}
-
 
 function renderVerdictReview() {
-
     const answers = state.answers.finalVerdict || {};
-
-    const correct = {
-        classification: "phishing",
-        compromise: "suspected",
-        response: "contain"
-    };
+    const correct = FINAL_ANSWERS;
 
     const questions = [
         {
@@ -2074,701 +1154,283 @@ function renderVerdictReview() {
                 malware: "Confirmed ransomware infection",
                 normal: "Normal IT maintenance"
             },
-            explanation:
-                "The email impersonated IT support and attempted to collect employee credentials through a lookalike domain."
+            explanation: "The message impersonated IT support and attempted to collect credentials through a lookalike domain."
         },
         {
             id: "compromise",
             title: "02 · Account compromise",
             options: {
-                suspected: "Yes — suspected account compromise is supported by the evidence.",
-                unproven: "No — there is no evidence of unusual access.",
-                certain: "Yes — the attacker's identity and full activity are confirmed."
+                suspected: "Suspected account compromise is supported.",
+                unproven: "No evidence of unusual access.",
+                certain: "Attacker identity and full activity confirmed."
             },
-            explanation:
-                "Credentials were submitted, followed by an unfamiliar successful login and unusual finance-folder access. However, the attacker's identity and full activity remain unknown."
+            explanation: "Credential submission was followed by an unfamiliar successful login and unusual finance-file access. The attacker identity and full activity remain unknown."
         },
         {
             id: "response",
             title: "03 · Immediate response",
             options: {
-                contain: "Contain the incident: secure the account and revoke active sessions.",
-                ignore: "Ignore the activity unless more employees report it.",
-                delete: "Delete the logs to remove suspicious traces."
+                contain: "Contain the incident and revoke active sessions.",
+                ignore: "Ignore activity unless more employees report it.",
+                delete: "Delete logs to remove suspicious traces."
             },
-            explanation:
-                "Containment comes first. Secure the account, revoke active sessions, preserve evidence and begin investigating the affected systems."
+            explanation: "Containment comes first: secure the account, revoke sessions, preserve evidence and investigate affected systems."
         }
     ];
 
     return `
         <div class="panel mt-20">
-
-            <div class="panel-heading">
-                <h3>Investigation Results</h3>
-                <span class="status-badge badge-success">MISSION SOLVED</span>
-            </div>
-
-            <p class="muted mt-10">
-                You completed the investigation. Review the evidence-based
-                answers below to see how your assessment compares.
-            </p>
-
+            <div class="panel-heading"><h3>Investigation Results</h3><span class="status-badge badge-success">MISSION SOLVED</span></div>
+            <p class="muted mt-10">Review your answers against the strongest evidence-based conclusions.</p>
             ${questions.map(question => {
-
                 const selected = answers[question.id];
                 const isCorrect = selected === correct[question.id];
 
                 return `
                     <div class="info-card mt-15">
-
                         <h4>${question.title}</h4>
-
-                        <p class="mt-10">
-                            <strong>Your answer:</strong>
-                            <span class="${isCorrect ? "text-cyan" : "muted"}">
-                                ${question.options[selected] || "No answer recorded"}
-                            </span>
-                        </p>
-
-                        <p class="mt-10">
-                            <strong>Correct answer:</strong>
-                            <span class="text-cyan">
-                                ${question.options[correct[question.id]]}
-                            </span>
-                        </p>
-
-                        <p class="mt-10">
-                            <strong>Why?</strong>
-                            ${question.explanation}
-                        </p>
-
-                        <div class="mt-10">
-                            ${isCorrect
-                                ? '<span class="status-badge badge-success">CORRECT</span>'
-                                : '<span class="status-badge badge-warning">REVIEW THIS ANSWER</span>'
-                            }
-                        </div>
-
-                    </div>
-                `;
-
+                        <p class="mt-10"><strong>Your answer:</strong> ${escapeHTML(question.options[selected] || "No answer")}</p>
+                        <p class="mt-10"><strong>Correct answer:</strong> <span class="text-cyan">${question.options[correct[question.id]]}</span></p>
+                        <p class="mt-10"><strong>Why?</strong> ${question.explanation}</p>
+                        <span class="status-badge ${isCorrect ? "badge-success" : "badge-warning"} mt-10">${isCorrect ? "CORRECT" : "REVIEW THIS ANSWER"}</span>
+                    </div>`;
             }).join("")}
-
             <div class="divider"></div>
-
-            <h3>Case Outcome</h3>
-
-            <p class="mt-10">
-                The evidence supports credential-harvesting phishing
-                followed by suspected account compromise.
-            </p>
-
-            <p class="muted mt-10">
-                The full extent of the incident and whether data was
-                exfiltrated remain unconfirmed.
-            </p>
-
-        </div>
-    `;
-}
-
-function submitFinalVerdict() {
-
-    const required = [
-        "classification",
-        "compromise",
-        "response"
-    ];
-
-    const missing = required.filter(
-        question => !selectedFinalAnswers[question]
-    );
-
-    if (missing.length) {
-
-        $("#mission5Feedback").innerHTML = feedback(
-            "Investigation incomplete",
-            "Answer all three questions before submitting your verdict.",
-            "warning"
-        );
-
-        return;
-    }
-
-    // Record the participant's answers.
-    state.answers.finalVerdict = {
-        ...selectedFinalAnswers
-    };
-
-    // Calculate the score for feedback.
-    const correct = {
-        classification: "phishing",
-        compromise: "suspected",
-        response: "contain"
-    };
-
-    const score = required.filter(
-        question =>
-            selectedFinalAnswers[question] === correct[question]
-    ).length;
-
-    state.answers.finalScore = score;
-
-    // Mark Mission 5 as completed regardless of the score.
-    completeMission(4);
-
-    state.finalReport = true;
-
-    saveState();
-
-    // Show the results and correct answers.
-    $("#mission5Feedback").innerHTML = feedback(
-        "Investigation completed!",
-        `You solved Operation Blackout. Your assessment scored ${score} / 3. Review the explanations below to see the correct conclusions.`,
-        "success"
-    );
-
-    $("#finalReport").innerHTML = renderVerdictReview();
-
-    renderMissionFooter();
-
-    showToast("Mission 5 solved — Operation Blackout completed.");
-
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
-    });
-
+            <h3>Case outcome</h3>
+            <p class="mt-10">The evidence supports credential-harvesting phishing followed by suspected account compromise.</p>
+            <p class="muted mt-10">The full extent of the incident and whether data was exfiltrated remain unconfirmed.</p>
+        </div>`;
 }
 
 /* =========================================================
-   14. FINAL REPORT
+   FINAL INVESTIGATOR REPORT
    ========================================================= */
 
 function renderFinalReport() {
-
-    const score = state.answers.finalScore ?? 0;
+    const score = currentPoints();
+    const rank = getRank();
 
     return `
-
         <div class="panel mt-20" id="printableReport">
-
-            <div class="panel-heading">
-                <h2>Final Investigation Report</h2>
-                <span class="status-badge badge-success">CASE REVIEW</span>
-            </div>
-
+            <div class="panel-heading"><h2>Final Investigator Report</h2><span class="status-badge badge-success">CASE REVIEW</span></div>
             <div class="divider"></div>
-
+            <div class="report-score">
+                <span class="section-label">INVESTIGATION POINTS</span>
+                <h1>${score} / 380 IP</h1>
+                <h3 class="text-cyan">${rank.name}</h3>
+                <p>${state.completedMissions.length} / 5 missions completed</p>
+            </div>
+            <div class="divider"></div>
+            <h3>Achievements unlocked</h3>
+            <div class="card-grid mt-20">
+                ${state.achievements.map(id => infoCard(ACHIEVEMENTS[id].title, ACHIEVEMENTS[id].description, "UNLOCKED")).join("") || "<p>No achievements unlocked.</p>"}
+            </div>
+            <div class="divider"></div>
             <p class="section-label">CLASSIFICATION</p>
-
-            <h3 class="text-cyan">
-                Credential-harvesting phishing followed by suspected account compromise.
-            </h3>
-
-
+            <h3 class="text-cyan">Credential-harvesting phishing followed by suspected account compromise.</h3>
             <div class="divider"></div>
-
             <div class="two-column-layout">
-
-                <div>
-
-                    <h3>Confirmed evidence</h3>
-
-                    <ul class="report-list">
-                        <li>Suspicious credential request.</li>
-                        <li>Unfamiliar destination domain.</li>
-                        <li>Simulated authentication failures.</li>
-                        <li>Reported credential entry.</li>
-                        <li>Subsequent unfamiliar successful login.</li>
-                    </ul>
-
-                </div>
-
-                <div>
-
-                    <h3>Unanswered questions</h3>
-
-                    <ul class="report-list">
-                        <li>Attacker identity.</li>
-                        <li>Exact access scope.</li>
-                        <li>Whether confidential information was viewed or modified.</li>
-                        <li>Whether other accounts were affected.</li>
-                    </ul>
-
-                </div>
-
+                <div><h3>Confirmed evidence</h3><ul class="report-list">
+                    <li>Suspicious credential request.</li><li>Lookalike destination domain.</li><li>Reported credential entry.</li><li>Unfamiliar successful login.</li><li>Finance folder access.</li>
+                </ul></div>
+                <div><h3>Unanswered questions</h3><ul class="report-list">
+                    <li>Attacker identity.</li><li>Exact access scope.</li><li>Whether information was exfiltrated.</li><li>Whether other accounts were affected.</li>
+                </ul></div>
             </div>
-
-
             <div class="divider"></div>
-
             <h3>Incident response recommendations</h3>
-
-            <div class="card-grid four-columns mt-20">
-
-                ${infoCard(
-                    "01 · CONTAIN",
-                    "Secure the account, revoke active sessions and block confirmed malicious infrastructure through approved procedures."
-                )}
-
-                ${infoCard(
-                    "02 · INVESTIGATE",
-                    "Preserve logs and examine affected systems, files and accounts."
-                )}
-
-                ${infoCard(
-                    "03 · RECOVER",
-                    "Reset credentials through official channels, restore services and verify system integrity."
-                )}
-
-                ${infoCard(
-                    "04 · IMPROVE",
-                    "Enable MFA, review security controls and strengthen employee awareness."
-                )}
-
+            <div class="card-grid mt-20">
+                ${infoCard("01 · CONTAIN", "Secure the account and revoke active sessions.")}
+                ${infoCard("02 · INVESTIGATE", "Preserve logs and examine affected systems.")}
+                ${infoCard("03 · RECOVER", "Reset credentials and verify system integrity.")}
+                ${infoCard("04 · IMPROVE", "Strengthen MFA and security awareness.")}
             </div>
-
-
             <div class="divider"></div>
-
-            <div class="feedback success">
-
-                <strong>CASE FILE 001 · INVESTIGATION COMPLETE</strong>
-
-                <p>
-                    Your decision score: ${score} / 3.
-                    Your findings have been recorded locally in this browser.
-                </p>
-
-            </div>
-
-
-            <p class="mt-20">
-                Cybersecurity is not just about detecting attacks.
-                It is about thinking critically, investigating evidence
-                and making informed decisions.
-            </p>
-
-            <p class="email-disclaimer mt-20">
-                ALL CASE DETAILS AND EVIDENCE ARE SIMULATED.
-                THIS REPORT DOES NOT REPRESENT A REAL INCIDENT.
-            </p>
-
-        </div>
-
-    `;
-
+            ${feedback("CASE FILE 001 · INVESTIGATION COMPLETE", `Your investigator score is ${score} / 380 IP. Rank: ${rank.name}. Findings are stored locally in this browser.`, "success")}
+            <p class="email-disclaimer mt-20">ALL CASE DETAILS AND EVIDENCE ARE SIMULATED. THIS REPORT DOES NOT REPRESENT A REAL INCIDENT.</p>
+        </div>`;
 }
-
 
 /* =========================================================
-   15. EVIDENCE LOCKER
+   EVIDENCE LOCKER
    ========================================================= */
 
+const evidenceDatabase = {
+    email: { title: "Email delivery record", description: "A suspicious external message reached the employee mailbox at 09:05." },
+    browser: { title: "Browser activity record", description: "The employee visited the imitation login page at 09:14." },
+    credentials: { title: "Credential submission record", description: "Credentials were submitted at 09:16." },
+    authentication: { title: "Authentication log", description: "An unfamiliar successful login occurred at 09:24 from 203.0.113.47." },
+    files: { title: "File access record", description: "A finance folder was listed and one file opened at 09:27." },
+    metadata: { title: "Email metadata", description: "A separate Reply-To address, unknown relay and bulk-sender metadata were observed." },
+    authenticationDetails: { title: "Email authentication results", description: "SPF and DKIM passed for the lookalike domain; DMARC was p=none." }
+};
+
 function openEvidenceLocker() {
-
-    const modal = $("#evidenceModal");
-
-    modal.classList.remove("hidden");
-    modal.setAttribute("aria-hidden", "false");
-
+    $("#evidenceModal")?.classList.remove("hidden");
+    $("#evidenceModal")?.setAttribute("aria-hidden", "false");
     renderEvidenceLocker();
-
 }
-
 
 function closeEvidenceLocker() {
-
-    const modal = $("#evidenceModal");
-
-    modal.classList.add("hidden");
-    modal.setAttribute("aria-hidden", "true");
-
+    $("#evidenceModal")?.classList.add("hidden");
+    $("#evidenceModal")?.setAttribute("aria-hidden", "true");
 }
 
-
 function renderEvidenceLocker() {
-
     const list = $("#evidenceList");
+    if (!list) return;
 
     if (!state.collectedEvidence.length) {
-
-        list.innerHTML = `
-            <div class="empty-evidence">
-                <span>▤</span>
-                <strong>No evidence collected yet</strong>
-                <p>Complete investigation tasks to unlock evidence records.</p>
-            </div>
-        `;
-
+        list.innerHTML = `<div class="empty-evidence"><span>▤</span><strong>No evidence collected yet</strong><p>Complete investigation tasks to unlock records.</p></div>`;
         return;
-
     }
 
     list.innerHTML = state.collectedEvidence.map(id => {
-
-        const evidence = evidenceDatabase[id];
-
-        if (!evidence) return "";
-
-        return `
-            <div class="evidence-list-item">
-
-                <strong>${escapeHTML(evidence.title)}</strong>
-
-                <p>${escapeHTML(evidence.description)}</p>
-
-            </div>
-        `;
-
+        const item = evidenceDatabase[id];
+        if (!item) return "";
+        return `<div class="evidence-list-item"><strong>${escapeHTML(item.title)}</strong><p>${escapeHTML(item.description)}</p></div>`;
     }).join("");
-
 }
 
-
 /* =========================================================
-   16. PRINT REPORT
+   PRINT
    ========================================================= */
 
 function printReport() {
-
     if (!state.finalReport) {
-
         showToast("Complete the final verdict before printing.");
-
         return;
-
     }
 
     const report = $("#finalReport");
-
-    if (!report || !report.innerHTML.trim()) {
-
-        showToast("Final report is not available yet.");
-
-        return;
-
-    }
+    if (!report) return;
 
     const printWindow = window.open("", "_blank");
-
     if (!printWindow) {
-
         showToast("Allow pop-ups to print your report.");
-
         return;
-
     }
 
     printWindow.document.write(`
-
-        <!DOCTYPE html>
-
-        <html lang="en">
-
-        <head>
-
-            <meta charset="UTF-8">
-
-            <title>Operation Blackout — Final Report</title>
-
-            <style>
-
-                body {
-                    font-family: Arial, sans-serif;
-                    color: #18113D;
-                    max-width: 900px;
-                    margin: 40px auto;
-                    padding: 20px;
-                    line-height: 1.7;
-                }
-
-                h1, h2, h3 {
-                    color: #6157FF;
-                }
-
-                .panel {
-                    padding: 20px;
-                    border: 1px solid #ddd;
-                    border-radius: 10px;
-                }
-
-                .card-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                }
-
-                .info-card {
-                    padding: 15px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                }
-
-                .divider {
-                    margin: 20px 0;
-                    border-top: 1px solid #ddd;
-                }
-
-                .section-label {
-                    font-size: 11px;
-                    font-weight: bold;
-                    letter-spacing: 2px;
-                }
-
-                .text-cyan {
-                    color: #6157FF;
-                }
-
-                .feedback {
-                    padding: 15px;
-                    background: #f0efff;
-                }
-
-                .email-disclaimer {
-                    font-size: 10px;
-                }
-
-                @media print {
-                    body {
-                        margin: 10px;
-                    }
-                }
-
-            </style>
-
-        </head>
-
-        <body>
-
-            <h1>DIGITAL DETECTIVE</h1>
-
-            <p>OPERATION BLACKOUT · AURELIA GLOBAL</p>
-
-            <p>CASE FILE 001 · FINAL INVESTIGATION REPORT</p>
-
-            ${report.innerHTML}
-
-        </body>
-
-        </html>
-
-    `);
-
+        <!DOCTYPE html><html><head><title>Operation Blackout — Report</title>
+        <style>
+        body{font-family:Arial,sans-serif;color:#18113D;max-width:900px;margin:40px auto;padding:20px;line-height:1.7}
+        h1,h2,h3{color:#6157FF}.panel{padding:20px;border:1px solid #ddd;border-radius:10px}
+        .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+        .info-card{padding:15px;border:1px solid #ddd;border-radius:8px}
+        .divider{margin:20px 0;border-top:1px solid #ddd}
+        .feedback{padding:15px;background:#f0efff}
+        </style></head><body>
+        <h1>DIGITAL DETECTIVE</h1><p>OPERATION BLACKOUT · AURELIA GLOBAL</p>
+        ${report.innerHTML}
+        </body></html>`);
     printWindow.document.close();
     printWindow.focus();
-
     printWindow.print();
-
 }
 
-
 /* =========================================================
-   17. RESET INVESTIGATION
+   RESET
    ========================================================= */
 
 function resetInvestigation() {
-
-    const confirmed = window.confirm(
-        "Reset Operation Blackout? Your mission progress and collected evidence will be deleted from this browser."
-    );
-
-    if (!confirmed) return;
+    if (!window.confirm("Reset Operation Blackout? All mission progress, points and evidence will be deleted from this browser.")) return;
 
     localStorage.removeItem(STORAGE_KEY);
-
-    state = structuredClone(defaultState);
-
+    state = structuredClone(DEFAULT_STATE);
     currentMission = 0;
-
     resetTemporaryMissionState();
 
     updateProgress();
-
     showHome();
-
     showToast("Investigation progress reset.");
-
 }
 
-
 /* =========================================================
-   18. EVENT HANDLING
+   EVENT HANDLING
    ========================================================= */
 
 document.addEventListener("click", event => {
-
     const target = event.target.closest("[data-action]");
-
     if (!target) return;
 
-    const action = target.dataset.action;
-
-    switch (action) {
-
+    switch (target.dataset.action) {
         case "mission1-answer":
-
             answerMissionOne(target.dataset.answer);
-
             break;
-
-
         case "mission2-clue":
-
             selectMissionTwoClue(target.dataset.clue);
-
             break;
-
-
         case "mission3-answer":
-
             answerMissionThree(target.dataset.answer);
-
             break;
-
-
         case "mission3-request":
-
             answerMissionThreeRequest(target.dataset.request);
-
             break;
-
-
         case "inspect-log":
-
             inspectLog(target.dataset.log);
-
             break;
-
-
         case "timeline-select":
-
             selectTimelineEvent(target.dataset.event);
-
             break;
-
-
         case "mission5-answer":
-
-            answerMissionFive(
-                target.dataset.question,
-                target.dataset.answer
-            );
-
+            answerMissionFive(target.dataset.question, target.dataset.answer);
             break;
-
-
         case "submit-verdict":
-
             submitFinalVerdict();
-
             break;
-
-
         case "open-evidence":
-
             openEvidenceLocker();
-
             break;
-
-
         case "next-mission":
-
             goToMission(currentMission + 1);
-
             break;
-
-
         case "print-report":
-
             printReport();
-
             break;
-
+        case "hint":
+            useHint(Number(target.dataset.mission));
+            break;
     }
-
 });
 
-
 /* =========================================================
-   19. NAVIGATION EVENT LISTENERS
+   NAVIGATION LISTENERS
    ========================================================= */
 
-$("#startCase").addEventListener("click", showWorkspace);
+$("#startCase")?.addEventListener("click", showWorkspace);
+$("#backHome")?.addEventListener("click", showHome);
 
-$("#backHome").addEventListener("click", showHome);
-
-$("#brandHome").addEventListener("click", event => {
-
+$("#brandHome")?.addEventListener("click", event => {
     event.preventDefault();
-
     showHome();
-
 });
 
-
-$("#resetProgress").addEventListener(
-    "click",
-    resetInvestigation
-);
-
-
-$("#closeEvidence").addEventListener(
-    "click",
-    closeEvidenceLocker
-);
-
-
-$("#closeEvidenceBackdrop").addEventListener(
-    "click",
-    closeEvidenceLocker
-);
-
-
-$("#evidenceLocker")?.addEventListener(
-    "click",
-    openEvidenceLocker
-);
-
+$("#resetProgress")?.addEventListener("click", resetInvestigation);
+$("#closeEvidence")?.addEventListener("click", closeEvidenceLocker);
+$("#closeEvidenceBackdrop")?.addEventListener("click", closeEvidenceLocker);
+$("#evidenceLocker")?.addEventListener("click", openEvidenceLocker);
 
 document.querySelectorAll(".mission-nav-item").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        goToMission(Number(button.dataset.mission));
-
-    });
-
+    button.addEventListener("click", () => goToMission(Number(button.dataset.mission)));
 });
 
-
 /* =========================================================
-   20. INITIALISE APPLICATION
+   INITIALISE
    ========================================================= */
 
 function initialiseApplication() {
-
     currentMission = state.currentMission;
-
-    updateProgress();
+    restoreTemporaryState();
 
     if (state.finalReport) {
-
-        // Keep the completed report available after a refresh.
-
         state.currentMission = 4;
-
         currentMission = 4;
-
         saveState();
-
     }
 
+    updateProgress();
     showHome();
-
 }
-
 
 initialiseApplication();
