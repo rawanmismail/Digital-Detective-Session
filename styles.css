@@ -2451,4 +2451,60 @@ textarea:focus-visible {
         transition-duration: 0.01ms !important;
     }
 
+
+    /* =========================================================
+   SECURITY OPERATIONS CENTRE — VISIBILITY FIX
+   ========================================================= */
+
+.hero-visual {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding: 22px;
+}
+
+.radar-container {
+    width: min(100%, 360px);
+    flex-shrink: 0;
+    margin: 24px auto;
+}
+
+.visual-topline,
+.visual-bottomline {
+    width: 100%;
+    min-width: 0;
+}
+
+.visual-topline > span,
+.visual-bottomline > div {
+    min-width: 0;
+}
+
+@media (max-width: 780px) {
+    .hero-visual {
+        padding: 18px;
+    }
+
+    .radar-container {
+        width: min(100%, 330px);
+        margin: 22px auto;
+    }
+}
+
+@media (max-width: 420px) {
+    .visual-topline {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .visual-bottomline {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .radar-container {
+        width: 100%;
+    }
+}
+
 }
