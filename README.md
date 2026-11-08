@@ -83,7 +83,5 @@ The experience is designed to encourage cybersecurity awareness, critical thinki
 
 ---
 
-**Created for the BCS Breakout Initiative**  
-Heriot-Watt University Dubai
 
 *Stay curious. Question the evidence. Think like a digital detective.*
