@@ -72,8 +72,8 @@ Participants must distinguish between confirmed evidence, reasonable conclusions
 7. Review your investigator report, score, rank, and achievements.
 
 ## 🌐 Play the Investigation
+https://digitaldetective-mission.netlify.app
 
-**[Launch Digital Detective — Operation Blackout]([https://rawanmismail.github.io/digital-detective/](https://digitaldetective-mission.netlify.app))**
 
 ## ⚠️ Disclaimer
 
