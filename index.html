@@ -375,42 +375,30 @@
 
 
     <!-- EVIDENCE LOCKER MODAL -->
-    <div id="evidenceModal" class="modal hidden" aria-hidden="true">
 
-        <div class="modal-backdrop" id="closeEvidenceBackdrop"></div>
+<!-- INVESTIGATOR SCORE -->
+<div class="investigator-stats">
+    <div class="sidebar-section-label">INVESTIGATOR PROFILE</div>
 
-        <div class="modal-panel">
-
-            <div class="modal-heading">
-
-                <div>
-                    <small>CASE FILE 001</small>
-                    <h2>Evidence Locker</h2>
-                </div>
-
-                <button id="closeEvidence" class="modal-close" aria-label="Close evidence locker">
-                    ×
-                </button>
-
-            </div>
-
-            <p class="modal-description">
-                Review the digital evidence collected during your investigation.
-            </p>
-
-            <div id="evidenceList" class="evidence-list">
-
-                <div class="empty-evidence">
-                    <span>▤</span>
-                    <strong>No evidence collected yet</strong>
-                    <p>Complete investigation tasks to unlock evidence records.</p>
-                </div>
-
-            </div>
-
-        </div>
-
+    <div class="score-card">
+        <span class="score-label">INVESTIGATION POINTS</span>
+        <strong id="investigationPoints">0</strong>
+        <span class="score-total">/ 380 IP</span>
     </div>
+
+    <div class="rank-card">
+        <span class="score-label">CURRENT RANK</span>
+        <strong id="analystRank">Trainee Analyst</strong>
+    </div>
+
+    <div class="achievement-summary">
+        <span>ACHIEVEMENTS</span>
+        <strong id="achievementCount">0 / 5</strong>
+    </div>
+
+    <div id="achievementDisplay" class="achievement-display"></div>
+</div>
+
 
 
 
