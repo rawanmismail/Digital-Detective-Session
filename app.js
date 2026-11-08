@@ -2012,7 +2012,9 @@ function renderMissionFive() {
         </div>
 
 
-        <div id="finalReport"></div>
+        <div id="finalReport">
+    ${state.finalReport ? renderVerdictReview() : ""}
+</div>
 
 
         ${completed
