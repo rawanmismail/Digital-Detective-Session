@@ -2192,9 +2192,14 @@ function submitFinalVerdict() {
         );
 
         return;
-
     }
 
+    // Record the participant's answers.
+    state.answers.finalVerdict = {
+        ...selectedFinalAnswers
+    };
+
+    // Calculate the score for feedback.
     const correct = {
         classification: "phishing",
         compromise: "suspected",
@@ -2202,34 +2207,31 @@ function submitFinalVerdict() {
     };
 
     const score = required.filter(
-        question => selectedFinalAnswers[question] === correct[question]
+        question =>
+            selectedFinalAnswers[question] === correct[question]
     ).length;
-
-    state.answers.finalVerdict = {
-        ...selectedFinalAnswers
-    };
 
     state.answers.finalScore = score;
 
+    // Mark Mission 5 as completed regardless of the score.
     completeMission(4);
 
     state.finalReport = true;
 
     saveState();
 
+    // Show the results and correct answers.
     $("#mission5Feedback").innerHTML = feedback(
-        `Verdict submitted · ${score} / 3`,
-        score === 3
-            ? "Excellent assessment. Your decisions align with the strongest supported conclusions."
-            : "Your verdict has been recorded. Review the findings below to understand the strongest evidence-based conclusions.",
-        score === 3 ? "success" : "warning"
+        "Investigation completed!",
+        `You solved Operation Blackout. Your assessment scored ${score} / 3. Review the explanations below to see the correct conclusions.`,
+        "success"
     );
 
-    $("#finalReport").innerHTML = renderFinalReport();
+    $("#finalReport").innerHTML = renderVerdictReview();
 
     renderMissionFooter();
 
-    showToast("Operation Blackout investigation completed.");
+    showToast("Mission 5 solved — Operation Blackout completed.");
 
     window.scrollTo({
         top: document.body.scrollHeight,
@@ -2237,7 +2239,6 @@ function submitFinalVerdict() {
     });
 
 }
-
 
 /* =========================================================
    14. FINAL REPORT
